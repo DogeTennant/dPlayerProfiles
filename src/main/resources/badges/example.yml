@@ -1,0 +1,8 @@
+# Example badge configuration.
+# Badges are granted manually via /dp badge give or the Developer API.
+# The 'id' field is the unique identifier.
+
+id: veteran
+display-name: "&6Veteran"
+description: "A long-standing member of the community"
+icon: GOLD_NUGGET

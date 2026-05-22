@@ -1,0 +1,58 @@
+name: dPlayerProfiles
+version: '${project.version}'
+main: com.dogetennant.dplayerprofiles.DPlayerProfiles
+api-version: '1.21'
+authors:
+  - dogetennant
+description: Player retention plugin with profiles, achievements, and badges.
+
+softdepend:
+  - PlaceholderAPI
+  - CoreProtect
+  - dTournaments
+  - OneInTheChamberReborn
+  - MythicMobs
+  - mcMMO
+  - FluxShops
+  - Jobs
+  - AuraSkills
+  - EliteMobs
+  - CrazyCrates
+  - ShopGUIPlus
+  - PinataParty
+  - Duels
+
+commands:
+  dplayerprofiles:
+    description: Main dPlayerProfiles command.
+    usage: /dplayerprofiles <subcommand>
+    aliases:
+      - dp
+      - dpp
+  profile:
+    description: View your own or another player's profile.
+    usage: /profile [player]
+    aliases:
+      - me
+    permission: dplayerprofiles.use
+  achievements:
+    description: View your own or another player's achievements.
+    usage: /achievements [player]
+    permission: dplayerprofiles.use
+
+permissions:
+  dplayerprofiles.use:
+    description: Allows use of basic profile commands.
+    default: true
+  dplayerprofiles.profile.others:
+    description: Allows viewing other players' profiles and achievements.
+    default: true
+  dplayerprofiles.view.others.achievements:
+    description: Allows viewing the Achievements button when browsing another player's profile.
+    default: op
+  dplayerprofiles.profile.bypass-private:
+    description: Allows viewing profiles that are set to private.
+    default: op
+  dplayerprofiles.admin:
+    description: Allows use of all admin commands.
+    default: op

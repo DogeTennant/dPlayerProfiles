@@ -1,0 +1,173 @@
+# English (United States) translation file.
+# Supports MiniMessage tags and legacy & color codes.
+# Available placeholders are noted per message.
+
+# General
+prefix: "<gradient:#a855f7:#ec4899><bold>dProfiles</bold></gradient> <dark_gray>»</dark_gray>"
+no-permission: "{prefix} <red>You don't have permission to do that."
+player-only: "{prefix} <red>This command can only be run by a player."
+unknown-command: "{prefix} <red>Unknown subcommand. Use <white>/dp help</white> for a list."
+player-not-found: "{prefix} <red>Player <white>{player}</white> has not played on this server."
+reload-success: "{prefix} <green>Configuration and language files reloaded."
+
+# Language command
+cmd-language-usage: "{prefix} <red>Usage: /dp language <code>"
+cmd-language-success: "{prefix} <green>Language switched to <white>{code}</white>."
+cmd-language-not-found: "{prefix} <red>No language file found for <white>{code}</white>."
+
+# Reset commands
+cmd-reset-usage: "{prefix} <red>Usage: /dp reset <player>"
+cmd-reset-success: "{prefix} <green>All data for <white>{player}</white> has been reset."
+cmd-resetach-usage: "{prefix} <red>Usage: /dp resetach <player> <achievement>"
+cmd-resetach-success: "{prefix} <green>Achievement <white>{achievement}</white> reset for <white>{player}</white>."
+cmd-resetach-not-found: "{prefix} <red>Achievement <white>{achievement}</white> does not exist."
+
+# Complete command
+cmd-complete-usage: "{prefix} <red>Usage: /dp complete <player> <achievement>"
+cmd-complete-success: "{prefix} <green>Achievement <white>{achievement}</white> completed for <white>{player}</white>."
+cmd-complete-already: "{prefix} <yellow><white>{player}</white> already has that achievement."
+cmd-complete-not-found: "{prefix} <red>Achievement <white>{achievement}</white> does not exist."
+
+# Badge commands
+cmd-badge-usage: "{prefix} <red>Usage: /dp badge give|remove <player> <badge>"
+cmd-badge-give-success: "{prefix} <green>Badge <white>{badge}</white> granted to <white>{player}</white>."
+cmd-badge-remove-success: "{prefix} <green>Badge <white>{badge}</white> removed from <white>{player}</white>."
+cmd-badge-not-found: "{prefix} <red>Badge <white>{badge}</white> does not exist."
+cmd-badge-already-has: "{prefix} <yellow><white>{player}</white> already has that badge."
+cmd-badge-doesnt-have: "{prefix} <yellow><white>{player}</white> does not have that badge."
+
+# Help command
+cmd-help-header: "<dark_gray>▬▬▬ <gradient:#a855f7:#ec4899><bold>dPlayerProfiles Help</bold></gradient> <dark_gray>▬▬▬"
+cmd-help-entry: " <gray>/dp <white>{name} <dark_gray>- <gray>{description}"
+
+# Command descriptions
+cmd-desc-help: "Show this help message"
+cmd-desc-profile: "View a player's profile"
+cmd-desc-achievements: "Browse achievements"
+cmd-desc-leaderboard: "View the top players"
+cmd-desc-language: "Switch the active language"
+cmd-desc-reload: "Reload configs and languages"
+cmd-desc-reset: "Reset all data for a player"
+cmd-desc-resetach: "Reset a single achievement for a player"
+cmd-desc-complete: "Force-complete an achievement for a player"
+cmd-desc-badge: "Give or remove a badge from a player"
+
+# Achievement notifications
+# {player} = player name, {achievement} = achievement display name
+achievement-complete-title: "<gold><bold>Achievement Unlocked!"
+achievement-complete-subtitle: "<yellow>{achievement}"
+achievement-complete-chat: "{prefix} <gold>Achievement Unlocked! <yellow>{achievement}"
+achievement-broadcast: "{prefix} <white>{player} <yellow>unlocked <gold>{achievement}<yellow>!"
+achievement-reward-item: "{prefix} <green>You received <white>{item}<green>!"
+achievement-reward-command: "{prefix} <green>You received a reward!"
+
+# Profile GUI
+# {player} = player name
+profile-gui-title: "<gradient:#a855f7:#ec4899>{player}'s Profile</gradient>"
+profile-skull-name: "<gradient:#a855f7:#ec4899><bold>{player}</bold></gradient>"
+profile-skull-first-seen: "<gray>First seen: <white>{date}"
+profile-skull-last-seen: "<gray>Last seen: <white>{date}"
+profile-skull-playtime: "<gray>Time played: <white>{time}"
+profile-skull-streak: "<gray>Login streak: <gold>{streak} days"
+profile-skull-achievements: "<gray>Achievements: <white>{completed}<gray>/<white>{total}"
+profile-skull-badges: "<gray>Badges: <white>{count}"
+profile-badges-header: "<light_purple><bold>Badges"
+profile-achievements-header: "<gold><bold>Recent Achievements"
+profile-no-badges: "<gray>No badges yet."
+profile-no-achievements: "<gray>No achievements completed yet."
+profile-btn-achievements: "<yellow>View All Achievements"
+profile-btn-leaderboard: "<aqua>View Leaderboard"
+profile-badge-granted: "<gray>Granted: <white>{date}"
+profile-page-prev: "<gray>◄ Previous Page"
+profile-page-next: "<gray>Next Page ►"
+profile-page-info: "<gray>Page <white>{page}<gray>/<white>{pages}"
+
+# Achievements GUI
+achievements-gui-title: "<gradient:#a855f7:#ec4899>Achievements</gradient>"
+achievements-gui-title-player: "<gradient:#a855f7:#ec4899>{player}'s Achievements</gradient>"
+achievements-nav-prev: "<gray>◄ Previous Page"
+achievements-nav-next: "<gray>Next Page ►"
+achievements-nav-info: "<gray>Page {page} / {pages}"
+achievements-progress: "<gray>Progress: <white>{current}<gray>/<white>{target}"
+achievements-progress-time: "<gray>Progress: <white>{current}h<gray>/<white>{target}h"
+achievements-completed: "<green>✔ Completed: <white>{date}"
+achievements-locked: "<red>✘ Locked"
+achievements-requires: "<dark_gray>Requires: <gray>{list}"
+achievements-badge-locked: "<red>✘ Requires badge"
+achievements-requires-badges: "<dark_gray>Required badges: <gray>{list}"
+achievements-hidden-name: "<dark_gray>???"
+achievements-hidden-lore: "<gray>Complete other achievements to reveal this one."
+achievements-category-all: "<white>All"
+achievements-back: "<gray>◄ Back"
+
+# Leaderboard GUI
+leaderboard-gui-title: "<gradient:#a855f7:#ec4899>Leaderboard</gradient>"
+leaderboard-entry-achievements: "<gray>Achievements: <white>{count}"
+leaderboard-entry-badges: "<gray>Badges: <white>{count}"
+leaderboard-empty: "<gray>No players have completed any achievements yet."
+
+# Rewards GUI (/dp rewards)
+rewards-gui-title: "<gradient:#a855f7:#ec4899>Achievement Rewards</gradient>"
+rewards-gui-click-hint: "<gray>Click to edit rewards"
+rewards-gui-no-rewards: "<dark_gray>No rewards configured"
+rewards-gui-reward-count: "<gray>Rewards: <white>{count}"
+rewards-editor-title: "<gradient:#a855f7:#ec4899>Rewards: {achievement}</gradient>"
+rewards-editor-add-command: "<green>+ Add Command Reward"
+rewards-editor-add-item: "<aqua>+ Add Held Item as Reward"
+rewards-editor-add-badge: "<light_purple>+ Add Badge Reward"
+rewards-editor-clear: "<red>Clear All Rewards"
+rewards-editor-remove-hint: "<red>Right-click to remove"
+rewards-editor-command-label: "<yellow>Command: <white>{command}"
+rewards-editor-item-label: "<aqua>Item Reward"
+rewards-editor-badge-label: "<light_purple>Badge: <white>{badge}"
+rewards-editor-empty: "<gray>No rewards yet. Add some below!"
+rewards-editor-no-item: "{prefix} <red>You must be holding an item to add it as a reward."
+rewards-editor-saved: "{prefix} <green>Rewards saved for <white>{achievement}</white>."
+rewards-cmd-input-prompt: "<gray>Type the reward command in chat (without /) or type <red>cancel <gray>to go back:"
+rewards-badge-input-prompt: "<gray>Type the badge ID in chat or type <red>cancel <gray>to go back:"
+cmd-desc-rewards: "Edit achievement rewards in-game"
+chat-badge-header: "&6&lBadges"
+# Each badge line in the chat hover. {badge} = badge display name.
+chat-badge-entry: "&7• {badge}"
+
+# Profile privacy
+profile-private: "{prefix} <red>{player}'s profile is private."
+profile-privacy-on: "<red>Private"
+profile-privacy-off: "<green>Public"
+profile-privacy-enabled: "{prefix} <red>Your profile is now <bold>private</bold>. Other players cannot view it."
+profile-privacy-disabled: "{prefix} <green>Your profile is now <bold>public</bold>."
+profile-badge-pinned: "<yellow>★ Shown in chat hover"
+profile-badge-pin-added: "{prefix} <green>Badge pinned to your chat hover. <gray>(Click again to unpin)"
+profile-badge-pin-removed: "{prefix} <gray>Badge unpinned from your chat hover."
+profile-badge-pin-full: "{prefix} <red>You already have 3 badges pinned. Unpin one first."
+
+cmd-desc-private: "Toggle your profile privacy"
+cmd-private-usage: "{prefix} <red>Usage: /dp private <on|off>"
+cmd-private-on: "on"
+cmd-private-off: "off"
+
+# Points system
+points-gui-title: "<gradient:#a855f7:#ec4899>{player}'s Points</gradient>"
+points-node-unlocked-chat: "{prefix} <gold>Points Node <white>{node}</white> unlocked!"
+points-node-name: "<white>Node {node}"
+points-node-status-unlocked: "<green>✔ Unlocked"
+points-node-status-current: "<aqua>★ Current Node"
+points-node-status-locked: "<red>✘ Locked"
+points-node-progress: "<gray>Points: <white>{current}<gray>/<white>{target}"
+points-info-title: "<gradient:#a855f7:#ec4899><bold>Points Progress</bold></gradient>"
+points-info-total: "<gray>Total points: <gold>{total}"
+points-info-current-node: "<gray>Current node: <white>{node} <gray>/ <white>{total_nodes}"
+points-info-next-in: "<gray>Next node in: <white>{pts} <gray>more pts"
+points-info-all-unlocked: "<green>All nodes unlocked!"
+points-btn-scroll-left: "<gray>◄ Scroll Left"
+points-btn-scroll-right: "<gray>Scroll Right ►"
+points-btn-back: "<gray>◄ Back to Profile"
+profile-btn-points: "<gold>View Points"
+points-milestone-indicator: "<gold>✦ Milestone"
+points-rewards-header: "<gray>Rewards:"
+points-reward-command: "<gray> • <white>{command}"
+points-reward-item: "<gray> • <white>{amount}x {item}"
+points-reward-badge: "<gray> • Badge: <white>{badge}"
+points-node-editor-title: "<gradient:#a855f7:#ec4899>Node {node} Rewards</gradient>"
+points-node-editor-saved: "{prefix} <green>Rewards saved for <white>Node {node}</white>."
+points-node-admin-hint: "<dark_gray>[Click to edit rewards]"

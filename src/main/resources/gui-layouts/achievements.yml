@@ -1,0 +1,58 @@
+id: achievements
+title: "&8Achievements"
+rows: 6
+
+fill:
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+#  Static items 
+items:
+  # Back button - only rendered when the GUI was opened from another GUI (e.g. profile)
+  - slot: 47
+    material: SPECTRAL_ARROW
+    name: "&7← Back"
+    action: back
+
+#  Dynamic components 
+components:
+  # Category tabs auto-generated from achievement categories (row 0, slots 0-8)
+  # Remove or replace this block with individual category-tab entries for explicit control.
+  - type: category-tabs
+    start-slot: 0
+    max-tabs: 9
+    all-name: "&aAll"
+    all-material: WHITE_STAINED_GLASS_PANE
+    all-material-selected: LIME_STAINED_GLASS_PANE
+    tab-material: CYAN_STAINED_GLASS_PANE
+    tab-material-selected: LIME_STAINED_GLASS_PANE
+
+  # Achievement list (rows 1–4, 36 slots)
+  # filter options: all | dynamic | completed | incomplete | category:<name>
+  # sort options:   id | recent
+  - type: achievement-list
+    id: main
+    slots: [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44]
+    filter: dynamic
+    sort: id
+
+  # Navigation (row 5)
+  - type: page-nav
+    direction: prev
+    component: main
+    slot: 45
+    material: ARROW
+    name: "&7← Previous Page"
+
+  - type: page-info
+    component: main
+    slot: 49
+    material: PAPER
+    name: "&7Page {page} / {total_pages}"
+
+  - type: page-nav
+    direction: next
+    component: main
+    slot: 53
+    material: ARROW
+    name: "&7Next Page →"

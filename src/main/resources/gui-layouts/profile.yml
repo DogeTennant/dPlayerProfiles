@@ -1,0 +1,96 @@
+id: profile
+title: "&8{player}'s Profile"
+rows: 6
+
+fill:
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+#  Static items 
+items:
+  # Player skull with profile stats (slot 4, centre of top row)
+  - slot: 4
+    type: player-head
+    name: "&e{player}"
+    lore:
+      - "&7First seen: &f{first_seen}"
+      - "&7Last seen: &f{last_seen}"
+      - "&7Playtime: &f{playtime}"
+      - "&7Login streak: &f{streak} days"
+      - "&7Achievements: &f{achievements_completed}&7/&f{achievements_total}"
+      - "&7Badges: &f{badges_count}"
+      - "&7Points: &6{points}"
+
+  # Section headers
+  - slot: 9
+    material: PURPLE_STAINED_GLASS_PANE
+    name: "&5Badges"
+
+  - slot: 18
+    material: GOLD_BLOCK
+    name: "&6Recent Achievements"
+
+  # Navigation row buttons
+  # View Achievements - hidden when viewing another player's profile unless the viewer has the perm
+  - slot: 48
+    material: BOOK
+    name: "&eView Achievements"
+    action: open-gui:achievements
+    visibility: self-or-perm:dplayerprofiles.view.others.achievements
+
+  # View Points - only visible to the profile owner; clicking does nothing if points system disabled
+  - slot: 50
+    material: NETHER_STAR
+    name: "&6View Points"
+    action: open-gui:points
+    visibility: self
+
+  - slot: 52
+    material: COMPASS
+    name: "&eView Leaderboard"
+    action: open-gui:leaderboard
+
+  # Privacy toggle - only visible to the profile owner, supports {privacy} placeholder
+  - slot: 46
+    material: ENDER_EYE
+    name: "&eProfile: &f{privacy}"
+    lore:
+      - "&7Click to toggle your profile privacy."
+      - "&7Private profiles cannot be viewed by other players."
+    action: toggle-privacy
+    visibility: self
+
+#  Dynamic components 
+components:
+  # Badge list (row 1, slots 10-17)
+  - type: badge-list
+    id: badges
+    slots: [10,11,12,13,14,15,16,17]
+
+  # Recent completed achievements (rows 2-3, slots 19-35)
+  - type: achievement-list
+    id: recent
+    slots: [19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35]
+    filter: completed
+    sort: recent
+
+  # Badge pagination (row 5)
+  - type: page-nav
+    direction: prev
+    component: badges
+    slot: 45
+    material: ARROW
+    name: "&7← Previous"
+
+  - type: page-info
+    component: badges
+    slot: 47
+    material: PAPER
+    name: "&7Badges: page {page} / {total_pages}"
+
+  - type: page-nav
+    direction: next
+    component: badges
+    slot: 53
+    material: ARROW
+    name: "&7Next →"

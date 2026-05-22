@@ -1,0 +1,64 @@
+storage:
+  type: sqlite          # sqlite or mysql
+  table-prefix: ""      # prepended to all table names, e.g. "dpp_"
+  mysql:
+    host: localhost
+    port: 3306
+    database: dplayerprofiles
+    username: root
+    password: ''
+    pool-size: 10
+    connection-timeout: 30000
+    max-lifetime: 1800000
+
+language: en_us
+
+# Track and reward consecutive daily logins.
+streaks-enabled: true
+
+# How many players to show in the /dp leaderboard GUI.
+leaderboard-size: 10
+
+# How often (in seconds) to flush accumulated playtime to the database.
+# Lower values are safer on crash but write more often. Default: 60.
+playtime-update-interval: 60
+
+# Anti-AFK: prevents time-played achievements from progressing while a player is AFK.
+# AFK is detected when the player's camera has not moved for 'timeout' seconds.
+# Chatting always resets the AFK timer, even without camera movement.
+anti-afk:
+  enabled: true
+  timeout: 300  # seconds of camera stillness before the player is considered AFK
+
+# CoreProtect integration: prevents farming block break/place achievements by breaking
+# and re-placing (or placing and re-breaking) the same block repeatedly.
+# Requires CoreProtect to be installed on the server.
+coreprotect:
+  enabled: true
+  lookup-time: 0  # hours of history to check (0 = all time)
+
+# How to notify players when they complete an achievement.
+# Options: title, chat, both
+achievement-notification: both
+
+# Server-wide broadcast is controlled per achievement via 'broadcast: true' in each achievement's yml.
+# By default all achievements are silent (broadcast: false). Enable it only for prestigious achievements.
+
+# Lock entire achievement categories behind a permission node.
+# Players without the permission cannot see or progress achievements in that category.
+# Leave empty to impose no category restrictions.
+# Example:
+#   category-permissions:
+#     pvp: dplayerprofiles.category.pvp
+#     secret: dplayerprofiles.category.secret
+category-permissions: {}
+
+# Points system: players earn points by completing achievements (set 'points:' per achievement).
+# Each node in the path unlocks at a fixed interval. Node rewards are configured in rewards.yml
+# using IDs 'points_node_0', 'points_node_1', etc.
+# Set enabled: false to hide the points GUI entirely.
+points:
+  enabled: true
+  points-per-node: 100    # points needed to advance one node
+  node-count: 50          # total number of nodes in the progression path
+  milestone-interval: 10  # every Nth node uses the milestone block (0 = no milestones)

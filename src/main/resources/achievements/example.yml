@@ -1,0 +1,231 @@
+# Example achievement configuration.
+# Copy this file, rename it, and customize it.
+# The filename does not matter; the 'id' field is the unique identifier.
+# This file is ignored by the loader - rename it to activate it.
+
+id: zombie_slayer
+display-name: "&2Zombie Slayer"
+description: "Kill 100 zombies"
+icon: ROTTEN_FLESH
+
+# Optional category. Remove or leave empty to have no category.
+category: combat
+
+# Achievement IDs that must be completed before this one becomes available.
+requires: []
+
+# Badge IDs the player must hold before this achievement becomes available.
+required-badges: []
+
+# Optional permission node. Leave empty for no restriction.
+permission: ""
+
+# If true, the achievement is hidden in the GUI until completed.
+hidden: false
+
+# Icon shown for hidden achievements before they are revealed.
+# Defaults to GRAY_CONCRETE if omitted or invalid.
+hidden-icon: GRAY_CONCRETE
+
+# Points awarded to the player when this achievement is completed.
+# Used by the points system (see config.yml → points). Set to 0 for no points.
+points: 10
+
+# If true, a server-wide broadcast is sent when this achievement is completed.
+# The player always receives a personal notification regardless of this setting.
+# Keep false (default) for common achievements; enable only for rare/prestigious ones.
+broadcast: false
+
+# What automatically triggers progress toward this achievement.
+# Trigger types: MOB_KILL, PLAYER_KILL, BLOCK_BREAK, BLOCK_PLACE, FISH, CRAFT,
+#                TIME_PLAYED, LOGIN_STREAK, LOGIN_COUNT, MANUAL, CHAIN,
+#                OITC_KILL, OITC_WIN, TOURNAMENT_WIN,
+#                MYTHICMOBS_KILL, MCMMO_LEVEL_UP,
+#                SHOP_BUY, SHOP_SELL, SHOP_CREATE,
+#                JOBS_LEVEL_UP, JOBS_JOIN,
+#                AURASKILLS_LEVEL_UP,
+#                ELITEMOBS_KILL, ELITEMOBS_DUNGEON_COMPLETE, ELITEMOBS_ARENA_COMPLETE, ELITEMOBS_QUEST_COMPLETE,
+#                CRATE_OPEN,
+#                PINATA_KILL,
+#                DUEL_WIN, DUEL_KILL
+#
+# CHAIN: auto-completes when all 'requires' achievements AND 'required-badges' are satisfied.
+#        No event trigger is needed - the plugin checks this automatically after every
+#        achievement or badge grant. Use this to create compound milestone rewards.
+#        Example:
+#          trigger:
+#            type: CHAIN
+#          requires: [zombie_slayer, miner_10, time_played_10]
+#          rewards configured in rewards.yml → grants a "Master" badge on completion
+#
+# OITC_KILL: increments each time the player kills in a OneInTheChamberReborn game.
+#   target: arena name to restrict to that arena, or '*' for any arena.
+#   Example:
+#     trigger:
+#       type: OITC_KILL
+#       target: '*'
+#       count: 50
+#
+# OITC_WIN: increments each time the player wins a OneInTheChamberReborn game.
+#   target: arena name to restrict to that arena, or '*' for any arena.
+#   Example:
+#     trigger:
+#       type: OITC_WIN
+#       target: '*'
+#       count: 10
+#
+# TOURNAMENT_WIN: increments each time the player wins a dTournaments tournament.
+#   target: tournament config ID to restrict (e.g. 'weekly_kills'), or '*' for any.
+#   Example:
+#     trigger:
+#       type: TOURNAMENT_WIN
+#       target: '*'
+#       count: 5
+#
+# MYTHICMOBS_KILL: increments each time the player kills a MythicMobs mob.
+#   target: mob internal name (e.g. 'SkeletonKing'), or '*' for any MythicMobs mob.
+#   Example:
+#     trigger:
+#       type: MYTHICMOBS_KILL
+#       target: SkeletonKing
+#       count: 10
+#
+# SHOP_BUY: increments by the number of items bought each transaction.
+#   Works with both FluxShops and ShopGUI+ - transactions on either plugin count toward the same achievement.
+#   target: Material name (e.g. DIAMOND), or '*' for any item.
+#   Example - buy 64 diamonds from shops:
+#     trigger:
+#       type: SHOP_BUY
+#       target: DIAMOND
+#       count: 64
+#
+# SHOP_SELL: increments by the number of items sold each transaction.
+#   Works with both FluxShops and ShopGUI+. Self-trades (selling to your own FluxShops chest) are excluded.
+#   target: Material name (e.g. WHEAT), or '*' for any item.
+#   Example - sell 1000 items total:
+#     trigger:
+#       type: SHOP_SELL
+#       target: '*'
+#       count: 1000
+#
+# SHOP_CREATE: increments by 1 each time the player creates a shop.
+#   target: unused (use '*').
+#   Example - open your first shop:
+#     trigger:
+#       type: SHOP_CREATE
+#       target: '*'
+#       count: 1
+#
+# JOBS_LEVEL_UP: completes when the player's Jobs Reborn job level reaches the target.
+#   count = target job level (SET semantics - not cumulative level-ups).
+#   target: job name exactly as defined in Jobs (e.g. Miner, Woodcutter), or '*' for any job.
+#   Example - reach level 50 in the Miner job:
+#     trigger:
+#       type: JOBS_LEVEL_UP
+#       target: Miner
+#       count: 50
+#
+# JOBS_JOIN: increments each time the player joins a Jobs Reborn job.
+#   target: job name or '*' for any job.
+#   Example - join your first job:
+#     trigger:
+#       type: JOBS_JOIN
+#       target: '*'
+#       count: 1
+#
+# AURASKILLS_LEVEL_UP: completes when the player's AuraSkills skill reaches the target level.
+#   count = target skill level (SET semantics - not cumulative level-ups).
+#   target: skill key in lowercase (e.g. mining, fighting, farming), or '*' for any skill.
+#   Valid skills: farming, foraging, mining, fishing, excavation, archery, fighting,
+#                 defense, agility, endurance, alchemy, enchanting, sorcery, healing, forging
+#   Example - reach level 50 in Mining:
+#     trigger:
+#       type: AURASKILLS_LEVEL_UP
+#       target: mining
+#       count: 50
+#
+# ELITEMOBS_KILL: increments each time the player kills an EliteMobs elite mob.
+#   target: entity type name (e.g. ZOMBIE, SKELETON), or '*' for any elite mob.
+#   Example - kill 50 elite zombies:
+#     trigger:
+#       type: ELITEMOBS_KILL
+#       target: ZOMBIE
+#       count: 50
+#
+# ELITEMOBS_DUNGEON_COMPLETE: increments each time the player completes an EliteMobs dungeon.
+#   target: dungeon name exactly as defined in EliteMobs, or '*' for any dungeon.
+#   Example:
+#     trigger:
+#       type: ELITEMOBS_DUNGEON_COMPLETE
+#       target: '*'
+#       count: 1
+#
+# ELITEMOBS_ARENA_COMPLETE: increments each time the player completes an EliteMobs arena.
+#   target: arena name exactly as defined in EliteMobs, or '*' for any arena.
+#   Example:
+#     trigger:
+#       type: ELITEMOBS_ARENA_COMPLETE
+#       target: '*'
+#       count: 5
+#
+# ELITEMOBS_QUEST_COMPLETE: increments each time the player completes an EliteMobs quest.
+#   target: quest name exactly as defined in EliteMobs, or '*' for any quest.
+#   Example:
+#     trigger:
+#       type: ELITEMOBS_QUEST_COMPLETE
+#       target: '*'
+#       count: 10
+#
+# DUEL_WIN: increments each time the player wins a Duels match (any end reason with a winner).
+#   target: kit name exactly as defined in Duels (e.g. 'Sword'), or '*' for any kit / no kit.
+#   Example - win 25 duels with any kit:
+#     trigger:
+#       type: DUEL_WIN
+#       target: '*'
+#       count: 25
+#
+# DUEL_KILL: increments each time the player defeats their opponent (reason = OPPONENT_DEFEAT).
+#   Unlike DUEL_WIN, this does NOT count wins by timeout or disconnect - the player must have
+#   actually killed the opponent.
+#   target: kit name or '*' for any kit.
+#   Example - get 50 kills in Sword duels:
+#     trigger:
+#       type: DUEL_KILL
+#       target: Sword
+#       count: 50
+#
+# PINATA_KILL: increments each time the player participates in killing a PinataParty pinata
+#   (the player must have hit it at least once). target is unused - use '*'.
+#   All players who hit the pinata receive credit when it dies.
+#   Example - participate in killing 10 pinatas:
+#     trigger:
+#       type: PINATA_KILL
+#       target: '*'
+#       count: 10
+#
+# CRATE_OPEN: increments each time the player opens a CrazyCrates crate.
+#   target: crate file name without .yml (e.g. 'Mystery' for Mystery.yml), or '*' for any crate.
+#   Example - open 10 crates of any type:
+#     trigger:
+#       type: CRATE_OPEN
+#       target: '*'
+#       count: 10
+#
+# MCMMO_LEVEL_UP: completes when the player's mcMMO skill reaches the target level.
+#   count = target skill level (SET semantics - not cumulative level-ups).
+#   target: skill name (e.g. MINING, SWORDS, WOODCUTTING), or '*' for any skill.
+#   Valid skills: ACROBATICS, ALCHEMY, ARCHERY, AXES, CROSSBOWS, EXCAVATION,
+#                 FISHING, HERBALISM, MACES, MINING, REPAIR, SALVAGE, SMELTING,
+#                 SPEARS, SWORDS, TAMING, TRIDENTS, UNARMED, WOODCUTTING
+#   Example:
+#     trigger:
+#       type: MCMMO_LEVEL_UP
+#       target: MINING
+#       count: 100
+trigger:
+  type: MOB_KILL
+  target: ZOMBIE   # EntityType, Material, or '*' for any.
+  count: 100
+
+# Rewards are configured in rewards.yml (or via the in-game /dp rewards GUI).
+# There is no 'rewards' block here - rewards.yml is the single source of truth.
