@@ -1,53 +1,53 @@
 id: profile
-title: "&8{player}'s Profile"
+title: "{lang:profile-gui-title}"
 rows: 6
 
 fill:
   material: GRAY_STAINED_GLASS_PANE
   name: " "
 
-#  Static items 
+#  Static items
 items:
   # Player skull with profile stats (slot 4, centre of top row)
   - slot: 4
     type: player-head
-    name: "&e{player}"
+    name: "{lang:profile-skull-name}"
     lore:
-      - "&7First seen: &f{first_seen}"
-      - "&7Last seen: &f{last_seen}"
-      - "&7Playtime: &f{playtime}"
-      - "&7Login streak: &f{streak} days"
-      - "&7Achievements: &f{achievements_completed}&7/&f{achievements_total}"
-      - "&7Badges: &f{badges_count}"
-      - "&7Points: &6{points}"
+      - "{lang:profile-skull-first-seen}"
+      - "{lang:profile-skull-last-seen}"
+      - "{lang:profile-skull-playtime}"
+      - "{lang:profile-skull-streak}"
+      - "{lang:profile-skull-achievements}"
+      - "{lang:profile-skull-badges}"
+      - "{lang:profile-skull-points}"
 
   # Section headers
   - slot: 9
     material: PURPLE_STAINED_GLASS_PANE
-    name: "&5Badges"
+    name: "{lang:profile-badges-header}"
 
   - slot: 18
     material: GOLD_BLOCK
-    name: "&6Recent Achievements"
+    name: "{lang:profile-achievements-header}"
 
   # Navigation row buttons
   # View Achievements - hidden when viewing another player's profile unless the viewer has the perm
   - slot: 48
     material: BOOK
-    name: "&eView Achievements"
+    name: "{lang:profile-btn-achievements}"
     action: open-gui:achievements
     visibility: self-or-perm:dplayerprofiles.view.others.achievements
 
   # View Points - only visible to the profile owner; clicking does nothing if points system disabled
   - slot: 50
     material: NETHER_STAR
-    name: "&6View Points"
+    name: "{lang:profile-btn-points}"
     action: open-gui:points
     visibility: self
 
   - slot: 52
     material: COMPASS
-    name: "&eView Leaderboard"
+    name: "{lang:profile-btn-leaderboard}"
     action: open-gui:leaderboard
 
   # Privacy toggle - only visible to the profile owner, supports {privacy} placeholder
@@ -60,7 +60,7 @@ items:
     action: toggle-privacy
     visibility: self
 
-#  Dynamic components 
+#  Dynamic components
 components:
   # Badge list (row 1, slots 10-17)
   - type: badge-list
@@ -80,17 +80,17 @@ components:
     component: badges
     slot: 45
     material: ARROW
-    name: "&7← Previous"
+    name: "{lang:profile-page-prev}"
 
   - type: page-info
     component: badges
     slot: 47
     material: PAPER
-    name: "&7Badges: page {page} / {total_pages}"
+    name: "{lang:profile-page-info}"
 
   - type: page-nav
     direction: next
     component: badges
     slot: 53
     material: ARROW
-    name: "&7Next →"
+    name: "{lang:profile-page-next}"

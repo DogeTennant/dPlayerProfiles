@@ -43,16 +43,22 @@ public class LanguageManager {
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(langFile);
 
+        for (String key : config.getKeys(true)) {
+            if (config.isString(key)) {
+                messages.put(key, config.getString(key, ""));
+            }
+        }
+
+        // Keys added in newer plugin versions are missing from an external file written by an
+        // older one - fall back to the copy bundled in the jar for those.
         InputStream resource = plugin.getResource("translations/" + languageCode + ".yml");
         if (resource != null) {
             YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
                     new InputStreamReader(resource, StandardCharsets.UTF_8));
-            config.setDefaults(defaults);
-        }
-
-        for (String key : config.getKeys(true)) {
-            if (config.isString(key)) {
-                messages.put(key, config.getString(key, ""));
+            for (String key : defaults.getKeys(true)) {
+                if (defaults.isString(key)) {
+                    messages.putIfAbsent(key, defaults.getString(key, ""));
+                }
             }
         }
 
@@ -81,6 +87,10 @@ public class LanguageManager {
         plugin.getConfig().set("language", code);
         plugin.saveConfig();
         return true;
+    }
+
+    public String getRawKey(String key) {
+        return messages.getOrDefault(key, key);
     }
 
     public String getRaw(MessageKey key, Placeholder... placeholders) {

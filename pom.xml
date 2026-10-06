@@ -4,7 +4,7 @@
 
   <groupId>com.dogetennant</groupId>
   <artifactId>dPlayerProfiles</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.2</version>
   <packaging>jar</packaging>
 
   <name>dPlayerProfiles</name>
@@ -73,6 +73,20 @@
       <artifactId>sqlite-jdbc</artifactId>
       <version>3.45.3.0</version>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- Vault (economy balances for the web statistics export) - via jitpack -->
+    <dependency>
+      <groupId>com.github.MilkBowl</groupId>
+      <artifactId>VaultAPI</artifactId>
+      <version>1.7.1</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

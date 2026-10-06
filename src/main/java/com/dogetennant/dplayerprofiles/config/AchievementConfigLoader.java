@@ -10,15 +10,24 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class AchievementConfigLoader {
 
     private final Plugin plugin;
     private AchievementRewardStorage rewardStorage;
     private final Map<String, AchievementConfig> achievements = new LinkedHashMap<>();
+    /** Which trigger types and targets the loaded achievements actually listen for. */
+    private final Map<TriggerType, TargetIndex> triggerIndex = new EnumMap<>(TriggerType.class);
 
     public AchievementConfigLoader(Plugin plugin) {
         this.plugin = plugin;
@@ -58,7 +67,52 @@ public class AchievementConfigLoader {
             }
         }
 
+        buildTriggerIndex();
+
         LogUtil.info("Loaded " + achievements.size() + " achievement(s).");
+    }
+
+    private void buildTriggerIndex() {
+        triggerIndex.clear();
+        for (AchievementConfig ac : achievements.values()) {
+            // CHAIN achievements auto-complete; they never arrive through increment().
+            if (ac.triggerType == null || ac.triggerType == TriggerType.CHAIN) continue;
+
+            TargetIndex index = triggerIndex.computeIfAbsent(ac.triggerType, type -> new TargetIndex());
+            if (ac.triggerTarget == null || ac.triggerTarget.isEmpty() || ac.triggerTarget.contains("*")) {
+                index.wildcard = true;
+            } else {
+                index.targets.addAll(ac.triggerTarget);
+            }
+        }
+    }
+
+    /**
+     * True if any loaded achievement would react to this trigger and target. Mirrors the
+     * matching done in AchievementManager, so callers can skip work - an event lookup, a
+     * database write - before it reaches the achievement loop and matches nothing.
+     */
+    public boolean isWatched(TriggerType type, String target) {
+        TargetIndex index = triggerIndex.get(type);
+        if (index == null) return false;
+        if (index.wildcard) return true;
+        if (target == null) return false;
+        return index.targets.contains(target.toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * True if placing this material could affect a later block achievement, and is
+     * therefore worth remembering for anti-farm purposes.
+     */
+    public boolean isBlockMaterialWatched(String material) {
+        return isWatched(TriggerType.BLOCK_BREAK, material)
+                || isWatched(TriggerType.BLOCK_PLACE, material);
+    }
+
+    /** Targets configured for one trigger type. Names are upper-case, as parseTargets stores them. */
+    private static final class TargetIndex {
+        boolean wildcard;
+        final Set<String> targets = new HashSet<>();
     }
 
     private AchievementConfig parse(YamlConfiguration cfg, String filename) {
@@ -107,8 +161,7 @@ public class AchievementConfigLoader {
                 LogUtil.warn("Unknown trigger type '" + typeStr + "' in " + filename + " - defaulting to MANUAL.");
                 ac.triggerType = TriggerType.MANUAL;
             }
-            ac.triggerTarget = trigger.getString("target", null);
-            if (ac.triggerTarget != null) ac.triggerTarget = ac.triggerTarget.toUpperCase();
+            ac.triggerTarget = parseTargets(trigger.get("target"));
             ac.triggerCount = trigger.getLong("count", 1);
         } else {
             ac.triggerType = TriggerType.MANUAL;
@@ -123,6 +176,33 @@ public class AchievementConfigLoader {
 
         ac.rewards = Collections.emptyList(); // populated from rewards.yml after all files are loaded
         return ac;
+    }
+
+    /**
+     * Parses a trigger 'target' value that may be a single string, a comma-separated
+     * string ("COAL_ORE, DEEPSLATE_COAL_ORE"), or a YAML list of strings.
+     * Returns null when there is no target (matches any).
+     */
+    private List<String> parseTargets(Object raw) {
+        if (raw == null) return null;
+
+        List<String> values = new ArrayList<>();
+        if (raw instanceof Collection<?> collection) {
+            for (Object entry : collection) {
+                if (entry != null) values.add(entry.toString());
+            }
+        } else {
+            values.add(raw.toString());
+        }
+
+        List<String> targets = new ArrayList<>();
+        for (String value : values) {
+            for (String part : value.split(",")) {
+                part = part.trim();
+                if (!part.isEmpty()) targets.add(part.toUpperCase(Locale.ROOT));
+            }
+        }
+        return targets.isEmpty() ? null : targets;
     }
 
     public Map<String, AchievementConfig> getAll() {

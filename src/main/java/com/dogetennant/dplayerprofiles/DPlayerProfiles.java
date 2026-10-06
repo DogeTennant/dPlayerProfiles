@@ -2,6 +2,7 @@ package com.dogetennant.dplayerprofiles;
 
 import com.dogetennant.dplayerprofiles.achievement.AchievementListener;
 import com.dogetennant.dplayerprofiles.achievement.AchievementManager;
+import com.dogetennant.dplayerprofiles.achievement.PlacedBlockTracker;
 import com.dogetennant.dplayerprofiles.command.AchievementsCommand;
 import com.dogetennant.dplayerprofiles.command.CommandRegistry;
 import com.dogetennant.dplayerprofiles.command.DPlayerProfilesCommand;
@@ -22,6 +23,7 @@ import com.dogetennant.dplayerprofiles.player.PlaytimeTracker;
 import com.dogetennant.dplayerprofiles.player.ProfileManager;
 import com.dogetennant.dplayerprofiles.reward.AchievementRewardStorage;
 import com.dogetennant.dplayerprofiles.reward.RewardManager;
+import com.dogetennant.dplayerprofiles.stats.WebStatsExporter;
 import com.dogetennant.dplayerprofiles.util.LogUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -41,9 +43,11 @@ public class DPlayerProfiles extends JavaPlugin {
     private PlaytimeTracker playtimeTracker;
     private RewardManager rewardManager;
     private AchievementManager achievementManager;
+    private PlacedBlockTracker placedBlockTracker;
     private GuiManager guiManager;
     private GuiLayoutLoader guiLayoutLoader;
     private IntegrationManager integrationManager;
+    private WebStatsExporter webStatsExporter;
     private CommandRegistry commandRegistry;
     private DPlayerProfilesAPI api;
 
@@ -64,7 +68,7 @@ public class DPlayerProfiles extends JavaPlugin {
         try {
             databaseManager = createDatabase();
             databaseManager.initialize();
-        } catch (SQLException e) {
+        } catch (SQLException | RuntimeException e) { // Hikari reports a refused connection as a RuntimeException
             LogUtil.severe("Database initialisation failed - disabling plugin.", e);
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -102,13 +106,18 @@ public class DPlayerProfiles extends JavaPlugin {
         // 8. Profile manager (handles join/quit events)
         profileManager = new ProfileManager(this, databaseManager);
         getServer().getPluginManager().registerEvents(profileManager, this);
+        profileManager.startVanishWatch();
 
         // 9. Playtime tracker (also handles AFK detection events)
         playtimeTracker = new PlaytimeTracker(this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
         playtimeTracker.start(configManager.get().playtimeUpdateInterval);
 
-        // 10. Achievement listener (Bukkit events)
+        // 10. Anti-farm tracker, then the achievement listener that consults it
+        placedBlockTracker = new PlacedBlockTracker(this);
+        getServer().getPluginManager().registerEvents(placedBlockTracker, this);
+        placedBlockTracker.start();
+
         getServer().getPluginManager().registerEvents(new AchievementListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatBadgeListener(this), this);
 
@@ -122,6 +131,10 @@ public class DPlayerProfiles extends JavaPlugin {
         // 12. Integrations
         integrationManager = new IntegrationManager(this);
         integrationManager.init();
+
+        // 12b. Web statistics export (needs the database, achievement/badge configs and Vault)
+        webStatsExporter = new WebStatsExporter(this);
+        webStatsExporter.start();
 
         // 13. Commands
         commandRegistry = new CommandRegistry();
@@ -138,6 +151,8 @@ public class DPlayerProfiles extends JavaPlugin {
         commandRegistry.register(new CompleteSubCommand());
         commandRegistry.register(new BadgeSubCommand());
         commandRegistry.register(new PrivacySubCommand());
+        commandRegistry.register(new MigrateSubCommand());
+        commandRegistry.register(new WebStatsSubCommand());
 
         DPlayerProfilesCommand commandHandler = new DPlayerProfilesCommand(commandRegistry);
         var cmd = getCommand("dplayerprofiles");
@@ -172,6 +187,8 @@ public class DPlayerProfiles extends JavaPlugin {
     @Override
     public void onDisable() {
         if (playtimeTracker != null) playtimeTracker.shutdown();
+        if (placedBlockTracker != null) placedBlockTracker.shutdown();
+        if (webStatsExporter != null) webStatsExporter.shutdown();
         if (integrationManager != null) integrationManager.shutdown();
         if (databaseManager != null) databaseManager.shutdown();
         LogUtil.info("dPlayerProfiles disabled.");
@@ -193,9 +210,11 @@ public class DPlayerProfiles extends JavaPlugin {
     public BadgeConfigLoader getBadgeConfigLoader() { return badgeConfigLoader; }
     public ProfileManager getProfileManager() { return profileManager; }
     public AchievementManager getAchievementManager() { return achievementManager; }
+    public PlacedBlockTracker getPlacedBlockTracker() { return placedBlockTracker; }
     public GuiManager getGuiManager() { return guiManager; }
     public GuiLayoutLoader getGuiLayoutLoader() { return guiLayoutLoader; }
     public IntegrationManager getIntegrationManager() { return integrationManager; }
+    public WebStatsExporter getWebStatsExporter() { return webStatsExporter; }
     public RewardManager getRewardManager() { return rewardManager; }
     public CommandRegistry getCommandRegistry() { return commandRegistry; }
     public DPlayerProfilesAPI getAPI() { return api; }

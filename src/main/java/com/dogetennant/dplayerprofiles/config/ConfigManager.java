@@ -40,12 +40,20 @@ public class ConfigManager {
         mainConfig.streaksEnabled = cfg.getBoolean("streaks-enabled", true);
         mainConfig.leaderboardSize = cfg.getInt("leaderboard-size", 10);
         mainConfig.playtimeUpdateInterval = cfg.getInt("playtime-update-interval", 60);
+        mainConfig.playtimeIgnoreVanished = cfg.getBoolean("playtime-ignore-vanished", true);
+        mainConfig.lastSeenIgnoreVanished = cfg.getBoolean("last-seen-ignore-vanished", true);
+        mainConfig.loginIgnoreVanished = cfg.getBoolean("login-ignore-vanished", true);
 
         mainConfig.antiAfkEnabled = cfg.getBoolean("anti-afk.enabled", true);
         mainConfig.antiAfkTimeout = cfg.getInt("anti-afk.timeout", 300);
 
-        mainConfig.coreprotectEnabled = cfg.getBoolean("coreprotect.enabled", true);
-        mainConfig.coreprotectLookupTime = cfg.getInt("coreprotect.lookup-time", 0);
+        mainConfig.antiFarmEnabled = cfg.getBoolean("anti-farm.enabled", true);
+        mainConfig.antiFarmMaxPerChunk = cfg.getInt("anti-farm.max-tracked-per-chunk", 8192);
+
+        if (cfg.isConfigurationSection("coreprotect")) {
+            LogUtil.warn("The 'coreprotect' config section is obsolete - anti-farm tracking is now built in "
+                    + "and no longer queries CoreProtect. Delete that section and use 'anti-farm' instead.");
+        }
 
         mainConfig.achievementNotification = cfg.getString("achievement-notification", "both").toLowerCase();
 
@@ -53,6 +61,13 @@ public class ConfigManager {
         mainConfig.pointsPerNode = cfg.getInt("points.points-per-node", 100);
         mainConfig.pointsNodeCount = cfg.getInt("points.node-count", 50);
         mainConfig.pointsMilestoneInterval = cfg.getInt("points.milestone-interval", 10);
+
+        mainConfig.webStatsEnabled = cfg.getBoolean("web-stats.enabled", false);
+        mainConfig.webStatsInterval = Math.max(10, cfg.getInt("web-stats.interval", 300));
+        mainConfig.webStatsBackfillOnStartup = cfg.getBoolean("web-stats.backfill-on-startup", true);
+        mainConfig.webStatsBackfillBalances = cfg.getBoolean("web-stats.backfill-balances", true);
+        mainConfig.webStatsBackfillBalancesPerTick = Math.max(1, cfg.getInt("web-stats.backfill-balances-per-tick", 10));
+        mainConfig.webStatsExportCatalog = cfg.getBoolean("web-stats.export-catalog", true);
 
         ConfigurationSection catPerms = cfg.getConfigurationSection("category-permissions");
         if (catPerms != null) {

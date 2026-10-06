@@ -5,6 +5,7 @@ import com.dogetennant.dplayerprofiles.database.DatabaseManager;
 import com.dogetennant.dplayerprofiles.model.PlayerProfile;
 import com.dogetennant.dplayerprofiles.util.LogUtil;
 import com.dogetennant.dplayerprofiles.util.TimeUtil;
+import com.dogetennant.dplayerprofiles.util.VanishUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,6 +16,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -24,6 +26,10 @@ public class ProfileManager implements Listener {
     private final DPlayerProfiles plugin;
     private final DatabaseManager db;
     private final Map<UUID, PlayerProfile> cache = new ConcurrentHashMap<>();
+    /** Online players whose "last seen" is frozen because they are vanished. */
+    private final Set<UUID> hiddenOnline = ConcurrentHashMap.newKeySet();
+    /** Joined vanished: the day's login (streak, login achievements) counts once they reappear. */
+    private final Set<UUID> deferredLogins = ConcurrentHashMap.newKeySet();
 
     public ProfileManager(DPlayerProfiles plugin, DatabaseManager db) {
         this.plugin = plugin;
@@ -35,27 +41,44 @@ public class ProfileManager implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         long now = System.currentTimeMillis();
+        // Joining vanished: to everyone else they are still offline, so "last seen" stays put
+        boolean hidden = isHidden(player);
+        if (hidden) hiddenOnline.add(uuid); else hiddenOnline.remove(uuid);
+        // ...and the login itself (streak, login date, login achievements) waits for them to reappear
+        boolean deferLogin = isLoginHidden(player);
+        deferredLogins.remove(uuid);
 
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 PlayerProfile profile = db.loadPlayer(uuid);
+                boolean isNew = profile == null;
                 if (profile == null) {
                     // New player
                     profile = new PlayerProfile(uuid, player.getName(), now, now, 0, 1, TimeUtil.today());
                     db.upsertPlayer(uuid, player.getName(), now, now, 0, 1, TimeUtil.today());
+                } else if (deferLogin) {
+                    // Counted when they reappear (completeDeferredLogin); nothing written now
+                    profile.setUsername(player.getName());
                 } else {
                     // Update streak
                     updateStreak(profile, now);
                     // Update username in case it changed
                     profile.setUsername(player.getName());
-                    profile.setLastSeen(now);
-                    db.updateStreak(uuid, profile.getLoginStreak(), profile.getLastLoginDate(), now);
+                    if (!hidden) profile.setLastSeen(now);
+                    db.updateStreak(uuid, profile.getLoginStreak(), profile.getLastLoginDate(), profile.getLastSeen());
                 }
                 cache.put(uuid, profile);
+                boolean deferred = deferLogin && !isNew;
 
                 // Fire login triggers on main thread after profile is loaded
                 PlayerProfile finalProfile = profile;
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    if (deferred) {
+                        deferredLogins.add(uuid);
+                        // reappeared while the profile was still loading
+                        if (player.isOnline() && !isLoginHidden(player)) completeDeferredLogin(player);
+                        return;
+                    }
                     plugin.getAchievementManager().onLogin(player, finalProfile);
                 });
             } catch (SQLException e) {
@@ -67,10 +90,13 @@ public class ProfileManager implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
+        boolean hidden = hiddenOnline.remove(uuid) | isHidden(event.getPlayer());
+        deferredLogins.remove(uuid);
         PlayerProfile profile = cache.remove(uuid);
         if (profile == null) return;
 
-        profile.setLastSeen(System.currentTimeMillis());
+        // Leaving while vanished: they already "left" when they vanished, keep that time
+        if (!hidden) profile.setLastSeen(System.currentTimeMillis());
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 db.upsertPlayer(uuid, profile.getUsername(), profile.getFirstSeen(),
@@ -78,6 +104,70 @@ public class ProfileManager implements Listener {
                         profile.getLoginStreak(), profile.getLastLoginDate());
             } catch (SQLException e) {
                 LogUtil.severe("Failed to save profile for " + profile.getUsername(), e);
+            }
+        });
+    }
+
+    private boolean isHidden(Player player) {
+        return plugin.getConfigManager().get().lastSeenIgnoreVanished && VanishUtil.isVanished(player);
+    }
+
+    /** Watches for players vanishing and reappearing mid-session (once a second). */
+    public void startVanishWatch() {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::checkVanishTransitions, 20L, 20L);
+    }
+
+    private void checkVanishTransitions() {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            UUID uuid = player.getUniqueId();
+            boolean hidden = isHidden(player);
+            if (hidden && hiddenOnline.add(uuid)) {
+                // Vanishing looks like logging off: last seen = now, then frozen
+                touchLastSeen(uuid);
+            } else if (!hidden && hiddenOnline.remove(uuid)) {
+                // Reappearing looks like joining
+                touchLastSeen(uuid);
+            }
+            if (deferredLogins.contains(uuid) && !isLoginHidden(player)) {
+                completeDeferredLogin(player);
+            }
+        }
+    }
+
+    private boolean isLoginHidden(Player player) {
+        return plugin.getConfigManager().get().loginIgnoreVanished && VanishUtil.isVanished(player);
+    }
+
+    /** A player who joined vanished has reappeared: count today's login now, as a join would. */
+    private void completeDeferredLogin(Player player) {
+        UUID uuid = player.getUniqueId();
+        PlayerProfile profile = cache.get(uuid);
+        if (profile == null || !deferredLogins.remove(uuid)) return;
+        long now = System.currentTimeMillis();
+        updateStreak(profile, now);
+        profile.setLastSeen(now);
+        int streak = profile.getLoginStreak();
+        String date = profile.getLastLoginDate();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                db.updateStreak(uuid, streak, date, now);
+            } catch (SQLException e) {
+                LogUtil.severe("Failed to save the login of " + player.getName(), e);
+            }
+        });
+        plugin.getAchievementManager().onLogin(player, profile);
+    }
+
+    private void touchLastSeen(UUID uuid) {
+        PlayerProfile profile = cache.get(uuid);
+        if (profile == null) return;
+        long now = System.currentTimeMillis();
+        profile.setLastSeen(now);
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                db.updateLastSeen(uuid, now);
+            } catch (SQLException e) {
+                LogUtil.severe("Failed to save last seen for " + uuid, e);
             }
         });
     }

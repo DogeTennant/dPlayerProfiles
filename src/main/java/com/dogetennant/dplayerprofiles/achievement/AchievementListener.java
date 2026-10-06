@@ -1,7 +1,7 @@
 package com.dogetennant.dplayerprofiles.achievement;
 
 import com.dogetennant.dplayerprofiles.DPlayerProfiles;
-import com.dogetennant.dplayerprofiles.integration.CoreProtectHook;
+import com.dogetennant.dplayerprofiles.config.AchievementConfigLoader;
 import com.dogetennant.dplayerprofiles.model.TriggerType;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -37,44 +37,32 @@ public class AchievementListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        Player player = event.getPlayer();
-        String material = event.getBlock().getType().name();
         Block block = event.getBlock();
+        String material = block.getType().name();
 
-        CoreProtectHook cpHook = plugin.getIntegrationManager().getCoreProtectHook();
-        if (cpHook == null) {
-            plugin.getAchievementManager().increment(player, TriggerType.BLOCK_BREAK, material, 1);
-            return;
-        }
+        if (!plugin.getAchievementConfigLoader().isWatched(TriggerType.BLOCK_BREAK, material)) return;
+        // Breaking a block a player put there is farming, not progress.
+        if (plugin.getPlacedBlockTracker().isPlayerPlaced(block)) return;
 
-        // Async CoreProtect lookup: skip if the player placed this block themselves
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            if (!cpHook.wasPlacedBySamePlayer(block, player.getName())) {
-                plugin.getServer().getScheduler().runTask(plugin, () ->
-                        plugin.getAchievementManager().increment(player, TriggerType.BLOCK_BREAK, material, 1));
-            }
-        });
+        plugin.getAchievementManager().increment(event.getPlayer(), TriggerType.BLOCK_BREAK, material, 1);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        Player player = event.getPlayer();
-        String material = event.getBlock().getType().name();
         Block block = event.getBlock();
+        String material = block.getType().name();
 
-        CoreProtectHook cpHook = plugin.getIntegrationManager().getCoreProtectHook();
-        if (cpHook == null) {
-            plugin.getAchievementManager().increment(player, TriggerType.BLOCK_PLACE, material, 1);
-            return;
-        }
+        AchievementConfigLoader configLoader = plugin.getAchievementConfigLoader();
+        if (!configLoader.isBlockMaterialWatched(material)) return;
 
-        // Async CoreProtect lookup: skip if the player broke this block themselves
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            if (!cpHook.wasBrokenBySamePlayer(block, player.getName())) {
-                plugin.getServer().getScheduler().runTask(plugin, () ->
-                        plugin.getAchievementManager().increment(player, TriggerType.BLOCK_PLACE, material, 1));
-            }
-        });
+        // Read before marking: a position already used once never pays out again,
+        // which is what caps the place/break loop.
+        PlacedBlockTracker tracker = plugin.getPlacedBlockTracker();
+        boolean alreadyUsed = tracker.isPlayerPlaced(block);
+        tracker.markPlayerPlaced(block, material);
+        if (alreadyUsed) return;
+
+        plugin.getAchievementManager().increment(event.getPlayer(), TriggerType.BLOCK_PLACE, material, 1);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

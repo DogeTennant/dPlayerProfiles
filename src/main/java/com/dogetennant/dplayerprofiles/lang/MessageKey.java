@@ -30,6 +30,22 @@ public enum MessageKey {
     CMD_BADGE_ALREADY_HAS("cmd-badge-already-has"),
     CMD_BADGE_DOESNT_HAVE("cmd-badge-doesnt-have"),
 
+    CMD_MIGRATE_PLAYERS_ONLINE("cmd-migrate-players-online"),
+    CMD_MIGRATE_NO_SOURCE("cmd-migrate-no-source"),
+    CMD_MIGRATE_NO_TABLES("cmd-migrate-no-tables"),
+    CMD_MIGRATE_SEVERAL_SETS("cmd-migrate-several-sets"),
+    CMD_MIGRATE_ADD_NEEDS_PREFIX("cmd-migrate-add-needs-prefix"),
+    CMD_MIGRATE_TARGET_MISMATCH("cmd-migrate-target-mismatch"),
+    CMD_MIGRATE_STARTED("cmd-migrate-started"),
+    CMD_MIGRATE_SUCCESS("cmd-migrate-success"),
+    CMD_MIGRATE_FAILED("cmd-migrate-failed"),
+
+    CMD_WEBSTATS_USAGE("cmd-webstats-usage"),
+    CMD_WEBSTATS_DISABLED("cmd-webstats-disabled"),
+    CMD_WEBSTATS_ALREADY_RUNNING("cmd-webstats-already-running"),
+    CMD_WEBSTATS_BACKFILL_STARTED("cmd-webstats-backfill-started"),
+    CMD_WEBSTATS_BACKFILL_DONE("cmd-webstats-backfill-done"),
+
     CMD_HELP_HEADER("cmd-help-header"),
     CMD_HELP_ENTRY("cmd-help-entry"),
 
@@ -43,6 +59,8 @@ public enum MessageKey {
     CMD_DESC_RESETACH("cmd-desc-resetach"),
     CMD_DESC_COMPLETE("cmd-desc-complete"),
     CMD_DESC_BADGE("cmd-desc-badge"),
+    CMD_DESC_MIGRATE("cmd-desc-migrate"),
+    CMD_DESC_WEBSTATS("cmd-desc-webstats"),
 
     ACHIEVEMENT_COMPLETE_TITLE("achievement-complete-title"),
     ACHIEVEMENT_COMPLETE_SUBTITLE("achievement-complete-subtitle"),
@@ -59,6 +77,7 @@ public enum MessageKey {
     PROFILE_SKULL_STREAK("profile-skull-streak"),
     PROFILE_SKULL_ACHIEVEMENTS("profile-skull-achievements"),
     PROFILE_SKULL_BADGES("profile-skull-badges"),
+    PROFILE_SKULL_POINTS("profile-skull-points"),
     PROFILE_BADGES_HEADER("profile-badges-header"),
     PROFILE_ACHIEVEMENTS_HEADER("profile-achievements-header"),
     PROFILE_NO_BADGES("profile-no-badges"),

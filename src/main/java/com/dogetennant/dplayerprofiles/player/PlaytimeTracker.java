@@ -46,12 +46,15 @@ public class PlaytimeTracker implements Listener {
         int elapsed = plugin.getConfigManager().get().playtimeUpdateInterval;
         boolean antiAfkEnabled = plugin.getConfigManager().get().antiAfkEnabled;
         int afkTimeout = plugin.getConfigManager().get().antiAfkTimeout;
+        boolean ignoreVanished = plugin.getConfigManager().get().playtimeIgnoreVanished;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
             PlayerProfile profile = profileManager.get(uuid);
             if (profile == null) continue;
 
+            // Vanished staff are not "playing": the vanish plugin convention is a "vanished" metadata value
+            if (ignoreVanished && com.dogetennant.dplayerprofiles.util.VanishUtil.isVanished(player)) continue;
             if (antiAfkEnabled && isAfk(player, uuid, elapsed, afkTimeout)) continue;
 
             profile.addPlaytime(elapsed);

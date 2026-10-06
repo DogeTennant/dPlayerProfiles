@@ -222,6 +222,11 @@ broadcast: false
 #       type: MCMMO_LEVEL_UP
 #       target: MINING
 #       count: 100
+# target accepts a single value, '*' for any, or multiple values via a comma-separated
+# string or a YAML list - useful for grouping variants (e.g. ore + its deepslate version)
+# under one achievement. All of these are equivalent:
+#   target: COAL_ORE, DEEPSLATE_COAL_ORE
+#   target: [COAL_ORE, DEEPSLATE_COAL_ORE]
 trigger:
   type: MOB_KILL
   target: ZOMBIE   # EntityType, Material, or '*' for any.

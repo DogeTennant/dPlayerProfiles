@@ -1,12 +1,12 @@
 id: leaderboard
-title: "&8Leaderboard"
+title: "{lang:leaderboard-gui-title}"
 rows: 6
 
 fill:
   material: GRAY_STAINED_GLASS_PANE
   name: " "
 
-#  Static items 
+#  Static items
 items:
   - slot: 4
     material: GOLD_INGOT
@@ -14,7 +14,7 @@ items:
     lore:
       - "&7Top players by completed achievements"
 
-#  Dynamic components 
+#  Dynamic components
 components:
   # Leaderboard entries - slots filled async; count capped to leaderboard-size in config.yml
   # click-action: open-gui:<id> opens the named layout with the clicked player's profile

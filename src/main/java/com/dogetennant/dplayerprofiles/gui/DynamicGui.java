@@ -26,6 +26,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +36,8 @@ import java.util.stream.Stream;
  * Replaces the hardcoded ProfileGui, AchievementsGui, and LeaderboardGui.
  */
 public class DynamicGui extends BaseGui {
+
+    private static final Pattern LANG_TOKEN = Pattern.compile("\\{lang:([^}]+)\\}");
 
     private final DPlayerProfiles plugin;
     private final GuiLayout layout;
@@ -356,8 +360,8 @@ public class DynamicGui extends BaseGui {
         if (!show) return;
 
         Material mat = comp.material != null ? comp.material : Material.ARROW;
-        String name = comp.name != null ? comp.name
-                : (comp.direction.equals("prev") ? "&7Previous" : "&7Next");
+        String name = resolvePlaceholders(comp.name != null ? comp.name
+                : (comp.direction.equals("prev") ? "&7Previous" : "&7Next"));
 
         inventory.setItem(comp.slot, new ItemBuilder(mat).name(name).build());
 
@@ -381,9 +385,10 @@ public class DynamicGui extends BaseGui {
         int tp = totalPages.getOrDefault(comp.component, 1);
 
         Material mat = comp.material != null ? comp.material : Material.PAPER;
-        String name = comp.name != null ? comp.name : "&7Page {page} / {total_pages}";
+        String name = resolvePlaceholders(comp.name != null ? comp.name : "&7Page {page} / {total_pages}");
         name = name.replace("{page}", String.valueOf(cur))
-                   .replace("{total_pages}", String.valueOf(tp));
+                   .replace("{total_pages}", String.valueOf(tp))
+                   .replace("{pages}", String.valueOf(tp));
 
         inventory.setItem(comp.slot, new ItemBuilder(mat).name(name).build());
     }
@@ -396,7 +401,7 @@ public class DynamicGui extends BaseGui {
                 ? or(comp.allMaterialSelected, Material.LIME_STAINED_GLASS_PANE)
                 : or(comp.allMaterial, Material.WHITE_STAINED_GLASS_PANE);
         inventory.setItem(comp.startSlot,
-                new ItemBuilder(allMat).name(comp.allName != null ? comp.allName : "&aAll").build());
+                new ItemBuilder(allMat).name(resolvePlaceholders(comp.allName != null ? comp.allName : "&aAll")).build());
         clickHandlers.put(comp.startSlot, p -> {
             selectedCategory = null;
             resetDynamicPages();
@@ -428,8 +433,8 @@ public class DynamicGui extends BaseGui {
         Material mat = active
                 ? or(comp.selectedMaterial, comp.material != null ? comp.material : Material.LIME_STAINED_GLASS_PANE)
                 : or(comp.material, Material.CYAN_STAINED_GLASS_PANE);
-        String name = comp.name != null ? comp.name
-                : (comp.category != null ? "&b" + comp.category : "&aAll");
+        String name = resolvePlaceholders(comp.name != null ? comp.name
+                : (comp.category != null ? "&b" + comp.category : "&aAll"));
 
         inventory.setItem(comp.slot, new ItemBuilder(mat).name(name).build());
         final String cat = comp.category;
@@ -692,12 +697,19 @@ public class DynamicGui extends BaseGui {
         }
     }
 
-    // 
+    //
     // Placeholder resolution
-    // 
+    //
+
+    private String resolveLangTokens(String text) {
+        if (text == null || !text.contains("{lang:")) return text;
+        return LANG_TOKEN.matcher(text).replaceAll(mr ->
+            Matcher.quoteReplacement(plugin.getLangManager().getRawKey(mr.group(1))));
+    }
 
     private String resolvePlaceholders(String text) {
         if (text == null) return "";
+        text = resolveLangTokens(text);
         if (profile != null) {
             int total = plugin.getAchievementConfigLoader().getAll().size();
             text = text

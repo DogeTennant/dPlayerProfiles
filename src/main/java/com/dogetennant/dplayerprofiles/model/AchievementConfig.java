@@ -23,7 +23,7 @@ public class AchievementConfig {
     public boolean broadcast = false; // whether completion is announced server-wide
 
     public TriggerType triggerType; // null for MANUAL
-    public String triggerTarget;    // EntityType or Material name; null when not applicable
+    public List<String> triggerTarget; // EntityType or Material names; null/empty when not applicable
     public long triggerCount;       // progress threshold; 0 for instant
 
     public int points = 0; // achievement point value for the points system

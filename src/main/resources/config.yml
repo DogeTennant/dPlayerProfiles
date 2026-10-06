@@ -23,6 +23,21 @@ leaderboard-size: 10
 # Lower values are safer on crash but write more often. Default: 60.
 playtime-update-interval: 60
 
+# Freeze profile playtime (and time-played achievements) while a player is vanished.
+# Works with any vanish plugin that sets the conventional "vanished" metadata
+# (dVanish, PremiumVanish, SuperVanish, Essentials, CMI, ...).
+playtime-ignore-vanished: true
+
+# Treat vanished players as offline for "last seen": joining vanished doesn't update it,
+# vanishing sets it to that moment (like logging off) and freezes it, reappearing counts
+# as joining again.
+last-seen-ignore-vanished: true
+
+# Joining vanished doesn't count as the day's login until the player reappears: the login
+# streak, the last login date and login achievements (login count, streak) wait until then.
+# A day spent entirely vanished therefore doesn't count towards the streak.
+login-ignore-vanished: true
+
 # Anti-AFK: prevents time-played achievements from progressing while a player is AFK.
 # AFK is detected when the player's camera has not moved for 'timeout' seconds.
 # Chatting always resets the AFK timer, even without camera movement.
@@ -30,12 +45,16 @@ anti-afk:
   enabled: true
   timeout: 300  # seconds of camera stillness before the player is considered AFK
 
-# CoreProtect integration: prevents farming block break/place achievements by breaking
-# and re-placing (or placing and re-breaking) the same block repeatedly.
-# Requires CoreProtect to be installed on the server.
-coreprotect:
+# Anti-farm: prevents farming block break/place achievements by placing and re-breaking
+# (or breaking and re-placing) the same block. Player-placed positions are remembered in the
+# chunk itself, so the check costs one in-memory lookup - no database, no extra threads.
+# Only materials some achievement actually watches are tracked.
+anti-farm:
   enabled: true
-  lookup-time: 0  # hours of history to check (0 = all time)
+  # Safety cap on remembered positions per chunk (8 bytes each; 8192 = 64 KB of chunk data
+  # in the worst case). Once a chunk hits the cap, further placements there are not tracked
+  # and a warning is logged. Set to 0 for no cap.
+  max-tracked-per-chunk: 8192
 
 # How to notify players when they complete an achievement.
 # Options: title, chat, both
@@ -62,3 +81,28 @@ points:
   points-per-node: 100    # points needed to advance one node
   node-count: 50          # total number of nodes in the progression path
   milestone-interval: 10  # every Nth node uses the milestone block (0 = no milestones)
+
+# Web statistics export: periodically writes vanilla statistics (mobs killed, players killed,
+# deaths, total playtime, blocks mined) and the Vault balance of every player to the
+# '<table-prefix>player_stats' table, so an external website or tool can build leaderboards
+# and player pages from the database. The plugin itself never reads these tables.
+# Requires Vault (+ an economy plugin) for balances; everything else works without it.
+web-stats:
+  enabled: false
+  # How often (in seconds) online players are snapshotted. Players are also snapshotted on quit.
+  interval: 300
+  # On startup, import every player who has ever joined from the world's stats files
+  # (world/stats/*.json), so leaderboards are complete from day one and not just for players
+  # who logged in since this was enabled. Only files newer than the stored row are read.
+  backfill-on-startup: true
+  # During the startup backfill, also look up (via Vault) the balance of players whose balance
+  # has never been recorded. Runs a few players per tick on the main thread. Disable this if
+  # your economy plugin is slow to answer for offline players. '/dp webstats backfill' refreshes
+  # every balance regardless of this setting.
+  backfill-balances: true
+  # How many offline balances to look up per tick during a backfill.
+  backfill-balances-per-tick: 10
+  # Also export the achievement and badge definitions (id, name, description, category, points,
+  # hidden) to '<table-prefix>achievement_catalog' and '<table-prefix>badge_catalog', refreshed on
+  # startup and /dp reload, so a website can show real names instead of raw IDs.
+  export-catalog: true

@@ -8,7 +8,7 @@ public class IntegrationManager {
 
     private final DPlayerProfiles plugin;
     private PlaceholderAPIHook papiHook;
-    private CoreProtectHook coreProtectHook;
+    private VaultHook vaultHook;
 
     public IntegrationManager(DPlayerProfiles plugin) {
         this.plugin = plugin;
@@ -21,16 +21,12 @@ public class IntegrationManager {
             LogUtil.info("PlaceholderAPI integration enabled.");
         }
 
-        if (plugin.getConfigManager().get().coreprotectEnabled) {
-            var cpPlugin = Bukkit.getPluginManager().getPlugin("CoreProtect");
-            if (cpPlugin != null) {
-                int lookupTime = plugin.getConfigManager().get().coreprotectLookupTime;
-                coreProtectHook = CoreProtectHook.create(cpPlugin, lookupTime);
-                if (coreProtectHook != null) {
-                    LogUtil.info("CoreProtect integration enabled.");
-                } else {
-                    LogUtil.warn("CoreProtect found but API is unavailable or too old (requires API v9+).");
-                }
+        if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+            vaultHook = new VaultHook();
+            if (vaultHook.isAvailable()) {
+                LogUtil.info("Vault economy integration enabled.");
+            } else {
+                LogUtil.warn("Vault is installed but no economy plugin registered with it - balances will not be exported.");
             }
         }
 
@@ -102,8 +98,8 @@ public class IntegrationManager {
         if (papiHook != null) papiHook.unregister();
     }
 
-    /** Returns the CoreProtect hook, or null if CoreProtect is not available or disabled. */
-    public CoreProtectHook getCoreProtectHook() {
-        return coreProtectHook;
+    /** Null when Vault is not installed. Check {@link VaultHook#isAvailable()} before use. */
+    public VaultHook getVaultHook() {
+        return vaultHook;
     }
 }

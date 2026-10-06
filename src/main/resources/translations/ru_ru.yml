@@ -1,0 +1,192 @@
+# Russian (Russia) translation file.
+# Supports MiniMessage tags and legacy & color codes.
+# Available placeholders are noted per message.
+
+# General
+prefix: "<gradient:#a855f7:#ec4899><bold>dProfiles</bold></gradient> <dark_gray>»</dark_gray>"
+no-permission: "{prefix} <red>Нэт прав."
+player-only: "{prefix} <red>Эта команда для игрока."
+unknown-command: "{prefix} <red>Непонятная сабкоманда. <white>/dp help</white> в помощь."
+player-not-found: "{prefix} <red>Игрок <white>{player}</white> на сервер не заходил."
+reload-success: "{prefix} <green>Конфиг и язык перезагружены."
+
+# Language command
+cmd-language-usage: "{prefix} <red>Пример использования: /dp language <файлик>"
+cmd-language-success: "{prefix} <green>Язык свитчнут на <white>{code}</white>."
+cmd-language-not-found: "{prefix} <red>Файл перевода не найден для <white>{code}</white>."
+
+# Reset commands
+cmd-reset-usage: "{prefix} <red>Пример использования: /dp reset <игрок>"
+cmd-reset-success: "{prefix} <green>Все данные про <white>{player}</white> стёрты."
+cmd-resetach-usage: "{prefix} <red>Пример использования: /dp resetach <игрок> <ачивка>"
+cmd-resetach-success: "{prefix} <green>Ачивка <white>{achievement}</white> изъята у <white>{player}</white>."
+cmd-resetach-not-found: "{prefix} <red>Ачивки <white>{achievement}</white> не существует."
+
+# Complete command
+cmd-complete-usage: "{prefix} <red>Пример использования: /dp complete <игрок> <ачивка>"
+cmd-complete-success: "{prefix} <green>Ачивка <white>{achievement}</white> начислена игроку <white>{player}</white>."
+cmd-complete-already: "{prefix} <yellow><white>{player}</white> уже получил эту ачивку."
+cmd-complete-not-found: "{prefix} <red>Ачивки <white>{achievement}</white> не существует."
+
+# Badge commands
+cmd-badge-usage: "{prefix} <red>Пример использования: /dp badge give|remove <игрок> <баджик>"
+cmd-badge-give-success: "{prefix} <green>Баджик <white>{badge}</white> присвоен игроку <white>{player}</white>."
+cmd-badge-remove-success: "{prefix} <green>Баджик <white>{badge}</white> изъят у игрока <white>{player}</white>."
+cmd-badge-not-found: "{prefix} <red>Баджика <white>{badge}</white> не существует."
+cmd-badge-already-has: "{prefix} <yellow><white>{player}</white> уже имеет этот баджик."
+cmd-badge-doesnt-have: "{prefix} <yellow><white>{player}</white> не имеет такого баджика."
+
+cmd-migrate-players-online: "{prefix} <red>Миграцию можно запустить только когда на сервере нет игроков (их профили загружены в память). Кикните всех или используйте техперерыв."
+cmd-migrate-no-source: "{prefix} <red>Нечего мигрировать: <white>{file}</white> не существует."
+cmd-migrate-no-tables: "{prefix} <red>В {source} не найдено таблиц dPlayerProfiles."
+cmd-migrate-several-sets: "{prefix} <yellow>В {source} несколько наборов таблиц (<white>{prefixes}</white>) - объединяю все."
+cmd-migrate-add-needs-prefix: "{prefix} <red>'add' должен знать, какой набор таблиц содержит новые данные, но в {source} их несколько (<white>{prefixes}</white>). Выполните <white>/dp migrate <префикс таблиц> add</white> (<white>none</white> = без префикса) для набора, который начинался пустым."
+cmd-migrate-target-mismatch: "{prefix} <red>Таблицы в {target} с префиксом <white>{table_prefix}</white> не являются таблицами dPlayerProfiles - они принадлежат другому плагину. Наборы таблиц dPlayerProfiles в {target}: <white>{prefixes}</white>. Исправьте storage.table-prefix в config.yml и перезапустите сервер."
+cmd-migrate-started: "{prefix} <yellow>Миграция профилей из <white>{source}</white> в <white>{target}</white>... выполняется в фоне."
+cmd-migrate-success: "{prefix} <green>Миграция завершена: объединено <white>{players}</white> игроков, <white>{achievements}</white> записей достижений, <white>{badges}</white> баджиков (префикс исходных таблиц: <white>{tables}</white>)."
+cmd-migrate-failed: "{prefix} <red>Миграция не удалась - подробности в консоли."
+
+cmd-webstats-usage: "{prefix} <red>Пример использования: /dp webstats backfill"
+cmd-webstats-disabled: "{prefix} <red>Экспорт веб-статистики выключен. Установите <white>web-stats.enabled: true</white> в config.yml и выполните /dp reload."
+cmd-webstats-already-running: "{prefix} <yellow>Импорт уже выполняется."
+cmd-webstats-backfill-started: "{prefix} <yellow>Импортирую офлайн-игроков и обновляю балансы в фоне..."
+cmd-webstats-backfill-done: "{prefix} <green>Импорт завершён: импортировано <white>{players}</white> игроков, обновлено <white>{balances}</white> балансов."
+
+# Help command
+cmd-help-header: "<dark_gray>▬▬▬ <gradient:#a855f7:#ec4899><bold>dPlayerProfiles Помощь</bold></gradient> <dark_gray>▬▬▬"
+cmd-help-entry: " <gray>/dp <white>{name} <dark_gray>- <gray>{description}"
+
+# Command descriptions
+cmd-desc-help: "Показать вот что ты щас видишь"
+cmd-desc-profile: "Показать профиль игрока"
+cmd-desc-achievements: "Просмотреть ачивки"
+cmd-desc-leaderboard: "Показать топ игроков"
+cmd-desc-language: "Переключить язык плагина"
+cmd-desc-reload: "Перезагрузить конфиг и языки"
+cmd-desc-reset: "Сбросить все данные игрока"
+cmd-desc-resetach: "Сбросить конкретную ачивку у игрока"
+cmd-desc-complete: "Начислить ачивку для игрока"
+cmd-desc-badge: "Дать/Забрать баджик игрока"
+cmd-desc-migrate: "Скопировать профили из неактивного хранилища в активное (опционально: префикс исходных таблиц)"
+cmd-desc-webstats: "Повторно импортировать офлайн-игроков в экспорт веб-статистики"
+
+# Achievement notifications
+# {player} = player name, {achievement} = achievement display name
+achievement-complete-title: "<gold><bold>Ачивка получена!"
+achievement-complete-subtitle: "<yellow>{achievement}"
+achievement-complete-chat: "{prefix} <gold>Ачивка! <yellow>{achievement}"
+achievement-broadcast: "{prefix} <white>{player} <yellow>завершил(-а) <gold>{achievement}<yellow>!"
+achievement-reward-item: "{prefix} <green>Награда: <white>{item}<green>!"
+achievement-reward-command: "{prefix} <green>Вам выдана награда!"
+
+# Profile GUI
+# {player} = player name
+profile-gui-title: "<gradient:#a855f7:#ec4899>Профиль {player}'а</gradient>"
+profile-skull-name: "<gradient:#a855f7:#ec4899><bold>{player}</bold></gradient>"
+profile-skull-first-seen: "<gray>Впервые посетил(-а): <white>{first_seen}"
+profile-skull-last-seen: "<gray>Крайний раз был(-а): <white>{last_seen}"
+profile-skull-playtime: "<gray>Время на сервере: <white>{playtime}"
+profile-skull-streak: "<gray>Макс. дней подряд: <gold>{streak}"
+profile-skull-achievements: "<gray>Ачивки: <white>{achievements_completed}<gray>/<white>{achievements_total}"
+profile-skull-badges: "<gray>Баджики: <white>{badges_count}"
+profile-skull-points: "<gray>Поинты: <gold>{points}"
+profile-badges-header: "<light_purple><bold>Баджики"
+profile-achievements-header: "<gold><bold>Недавние Ачивки"
+profile-no-badges: "<gray>Пока что нет."
+profile-no-achievements: "<gray>Пока что нет."
+profile-btn-achievements: "<yellow>Посмотреть все Ачивки"
+profile-btn-leaderboard: "<aqua>Посмотреть топ игроков"
+profile-badge-granted: "<gray>Присвоен: <white>{date}"
+profile-page-prev: "<gray>◄ Предыдущая"
+profile-page-next: "<gray>Следующая ►"
+profile-page-info: "<gray>Страница <white>{page}<gray>/<white>{pages}"
+
+# Achievements GUI
+achievements-gui-title: "<gradient:#a855f7:#ec4899>Ачивки</gradient>"
+achievements-gui-title-player: "<gradient:#a855f7:#ec4899>Ачивки {player}'а</gradient>"
+achievements-nav-prev: "<gray>◄ Предыдущая"
+achievements-nav-next: "<gray>Следующая ►"
+achievements-nav-info: "<gray>Страница {page} / {pages}"
+achievements-progress: "<gray>Прогресс: <white>{current}<gray>/<white>{target}"
+achievements-progress-time: "<gray>Прогресс: <white>{current}h<gray>/<white>{target}h"
+achievements-completed: "<green>✔ Завершено: <white>{date}"
+achievements-locked: "<red>✘ Недоступно"
+achievements-requires: "<dark_gray>Требуется: <gray>{list}"
+achievements-badge-locked: "<red>✘ Требуется баджик"
+achievements-requires-badges: "<dark_gray>Требуются баджики: <gray>{list}"
+achievements-hidden-name: "<dark_gray>???"
+achievements-hidden-lore: "<gray>Заверши другие ачивки, чтобы эта стала доступной."
+achievements-category-all: "<white>Все"
+achievements-back: "<gray>◄ Назад"
+
+# Leaderboard GUI
+leaderboard-gui-title: "<gradient:#a855f7:#ec4899>Топ игроков</gradient>"
+leaderboard-entry-achievements: "<gray>Ачивки: <white>{count}"
+leaderboard-entry-badges: "<gray>Баджики: <white>{count}"
+leaderboard-empty: "<gray>Никто ничего еще не выполнил."
+
+# Rewards GUI (/dp rewards)
+rewards-gui-title: "<gradient:#a855f7:#ec4899>Награда за Ачивку</gradient>"
+rewards-gui-click-hint: "<gray>Нажмите, чтобы изменить награду"
+rewards-gui-no-rewards: "<dark_gray>Награда не настроена"
+rewards-gui-reward-count: "<gray>Награда: <white>{count}"
+rewards-editor-title: "<gradient:#a855f7:#ec4899>Награда: {achievement}</gradient>"
+rewards-editor-add-command: "<green>+ Добавить команду на награду"
+rewards-editor-add-item: "<aqua>+ Добавить предмет в вашей руке, как награду"
+rewards-editor-add-badge: "<light_purple>+ Добавить баджик, как награду"
+rewards-editor-clear: "<red>Убрать всё из награды"
+rewards-editor-remove-hint: "<red>ПКМ, чтобы убрать"
+rewards-editor-command-label: "<yellow>Команда: <white>{command}"
+rewards-editor-item-label: "<aqua>Награда шмотками"
+rewards-editor-badge-label: "<light_purple>Баджик: <white>{badge}"
+rewards-editor-empty: "<gray>Награда не предусмотрена. Добавьте таковую ниже!"
+rewards-editor-no-item: "{prefix} <red>Вам надо держать предмет в руке."
+rewards-editor-saved: "{prefix} <green>Награда сохранена для <white>{achievement}</white>."
+rewards-cmd-input-prompt: "<gray>Напишите команду на получение награды в чат (без /) или <red>cancel <gray>, чтобы перейти обратно:"
+rewards-badge-input-prompt: "<gray>Напишите ID баджика в чат или <red>cancel <gray>, чтобы перейти обратно:"
+cmd-desc-rewards: "Изменить награду за ачивку"
+chat-badge-header: "&6&lБаджики"
+# Each badge line in the chat hover. {badge} = badge display name.
+chat-badge-entry: "&7• {badge}"
+
+# Profile privacy
+profile-private: "{prefix} <red>У {player}'а закрытый профиль."
+profile-privacy-on: "<red>Закрытый"
+profile-privacy-off: "<green>Публичный"
+profile-privacy-enabled: "{prefix} <red>Ваш профиль теперь <bold>приватный</bold>. Другие не смогут его увидеть."
+profile-privacy-disabled: "{prefix} <green>Ваш профиль теперь <bold>открыт</bold>."
+profile-badge-pinned: "<yellow>★ Показывается в чате"
+profile-badge-pin-added: "{prefix} <green>Этот баджик теперь будет виден в чате. <gray>(Нажми опять, чтобы убрать его)"
+profile-badge-pin-removed: "{prefix} <gray>Этот баджик теперь не будет виден в чате."
+profile-badge-pin-full: "{prefix} <red>Ты уже закрепил три баджика, сначала убери какой-нибудь."
+
+cmd-desc-private: "Переключает профиль на приватный и обратно"
+cmd-private-usage: "{prefix} <red>Пример использования: /dp private <on|off>"
+cmd-private-on: "on"
+cmd-private-off: "off"
+
+# Points system
+points-gui-title: "<gradient:#a855f7:#ec4899>Поинты {player}'а</gradient>"
+points-node-unlocked-chat: "{prefix} <gold>Достигнута <white>{node}</white> ступень по поинтам!"
+points-node-name: "<white>Ступень {node}"
+points-node-status-unlocked: "<green>✔ Достигнута"
+points-node-status-current: "<aqua>★ В процессе..."
+points-node-status-locked: "<red>✘ Недоступна"
+points-node-progress: "<gray>Поинты: <white>{current}<gray>/<white>{target}"
+points-info-title: "<gradient:#a855f7:#ec4899><bold>Прогресс по поинтам</bold></gradient>"
+points-info-total: "<gray>Всего поинтов: <gold>{total}"
+points-info-current-node: "<gray>Текущая ступень: <white>{node} <gray>/ <white>{total_nodes}"
+points-info-next-in: "<gray>До следующей ступени: <white>{pts} <gray>поинтов"
+points-info-all-unlocked: "<green>Все ступени пройдены!"
+points-btn-scroll-left: "<gray>◄ Влево"
+points-btn-scroll-right: "<gray>Вправо ►"
+points-btn-back: "<gray>◄ Назад в профиль"
+profile-btn-points: "<gold>Посмотреть поинты"
+points-milestone-indicator: "<gold>✦ Рубеж"
+points-rewards-header: "<gray>Приз:"
+points-reward-command: "<gray> • <white>{command}"
+points-reward-item: "<gray> • <white>{amount}x {item}"
+points-reward-badge: "<gray> • Баджик: <white>{badge}"
+points-node-editor-title: "<gradient:#a855f7:#ec4899>Ступень {node} Награда</gradient>"
+points-node-editor-saved: "{prefix} <green>Награда сохранена для <white>Ступени {node}</white>."
+points-node-admin-hint: "<dark_gray>[ЛКМ, чтобы изменить награду]"

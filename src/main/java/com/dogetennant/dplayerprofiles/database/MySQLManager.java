@@ -2,6 +2,7 @@ package com.dogetennant.dplayerprofiles.database;
 
 import com.dogetennant.dplayerprofiles.config.MainConfig;
 import com.dogetennant.dplayerprofiles.model.PlayerProfile;
+import com.dogetennant.dplayerprofiles.model.StatsSnapshot;
 import com.dogetennant.dplayerprofiles.util.LogUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -21,11 +22,12 @@ public class MySQLManager extends DatabaseManager {
     }
 
     @Override
-    public void initialize() throws SQLException {
+    public void connect() throws SQLException {
         HikariConfig hc = new HikariConfig();
         hc.setJdbcUrl("jdbc:mysql://" + config.mysqlHost + ":" + config.mysqlPort
                 + "/" + config.mysqlDatabase
-                + "?useSSL=false&characterEncoding=utf8mb4&useUnicode=true");
+                // Connector/J wants the Java charset name here; UTF-8 maps to utf8mb4 server-side
+                + "?useSSL=false&characterEncoding=UTF-8&useUnicode=true");
         hc.setUsername(config.mysqlUsername);
         hc.setPassword(config.mysqlPassword);
         hc.setMaximumPoolSize(config.mysqlPoolSize);
@@ -33,12 +35,21 @@ public class MySQLManager extends DatabaseManager {
         hc.setMaxLifetime(config.mysqlMaxLifetime);
         hc.setPoolName("dPlayerProfiles-Pool");
         dataSource = new HikariDataSource(hc);
-
-        createTables();
-        LogUtil.info("MySQL database initialised at " + config.mysqlHost + "/" + config.mysqlDatabase);
+        LogUtil.info("MySQL database connected at " + config.mysqlHost + "/" + config.mysqlDatabase);
     }
 
-    private void createTables() throws SQLException {
+    @Override
+    protected List<String> listTables() throws SQLException {
+        List<String> tables = new ArrayList<>();
+        try (Connection con = getConnection(); Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery("SHOW TABLES")) {
+            while (rs.next()) tables.add(rs.getString(1));
+        }
+        return tables;
+    }
+
+    @Override
+    protected void createTables() throws SQLException {
         try (Connection con = getConnection(); Statement stmt = con.createStatement()) {
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS %s (
@@ -68,6 +79,49 @@ public class MySQLManager extends DatabaseManager {
                     granted_by  VARCHAR(36),
                     PRIMARY KEY (player_uuid, badge_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""".formatted(t("badges")));
+
+            // Web statistics export - read by external tools (e.g. a website), never by the plugin's GUIs
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS %s (
+                    player_uuid      VARCHAR(36)  PRIMARY KEY,
+                    username         VARCHAR(16),
+                    mob_kills        BIGINT       NOT NULL DEFAULT 0,
+                    player_kills     BIGINT       NOT NULL DEFAULT 0,
+                    deaths           BIGINT       NOT NULL DEFAULT 0,
+                    playtime_seconds BIGINT       NOT NULL DEFAULT 0,
+                    blocks_mined     BIGINT       NOT NULL DEFAULT 0,
+                    balance          DOUBLE,
+                    updated_at       BIGINT       NOT NULL,
+                    INDEX idx_username (username),
+                    INDEX idx_mob_kills (mob_kills),
+                    INDEX idx_player_kills (player_kills),
+                    INDEX idx_deaths (deaths),
+                    INDEX idx_playtime (playtime_seconds),
+                    INDEX idx_blocks_mined (blocks_mined),
+                    INDEX idx_balance (balance)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""".formatted(t("player_stats")));
+
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS %s (
+                    achievement_id VARCHAR(128) PRIMARY KEY,
+                    display_name   VARCHAR(255) NOT NULL,
+                    description    TEXT,
+                    category       VARCHAR(64),
+                    points         INT          NOT NULL DEFAULT 0,
+                    hidden         TINYINT(1)   NOT NULL DEFAULT 0,
+                    icon           VARCHAR(64),
+                    sort_order     INT          NOT NULL DEFAULT 0
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""".formatted(t("achievement_catalog")));
+
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS %s (
+                    badge_id     VARCHAR(128) PRIMARY KEY,
+                    display_name VARCHAR(255) NOT NULL,
+                    description  TEXT,
+                    icon         VARCHAR(64)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""".formatted(t("badge_catalog")));
+
+            verifyPlayersTable(stmt);
 
             // Migrations for existing tables
             try {
@@ -360,5 +414,101 @@ public class MySQLManager extends DatabaseManager {
             }
         }
         return result;
+    }
+
+    //  Web statistics export
+
+    @Override
+    public void upsertPlayerStats(StatsSnapshot s, long updatedAt) throws SQLException {
+        String sql = "INSERT INTO " + t("player_stats")
+                + " (player_uuid, username, mob_kills, player_kills, deaths, playtime_seconds, blocks_mined, balance, updated_at)"
+                + " VALUES (?,?,?,?,?,?,?,?,?)"
+                + " ON DUPLICATE KEY UPDATE username=COALESCE(VALUES(username), username),"
+                + " mob_kills=VALUES(mob_kills), player_kills=VALUES(player_kills), deaths=VALUES(deaths),"
+                + " playtime_seconds=VALUES(playtime_seconds), blocks_mined=VALUES(blocks_mined),"
+                + " balance=COALESCE(VALUES(balance), balance), updated_at=VALUES(updated_at)";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, s.uuid().toString());
+            ps.setString(2, s.username());
+            ps.setLong(3, s.mobKills());
+            ps.setLong(4, s.playerKills());
+            ps.setLong(5, s.deaths());
+            ps.setLong(6, s.playtimeSeconds());
+            ps.setLong(7, s.blocksMined());
+            if (s.balance() == null) ps.setNull(8, Types.DOUBLE); else ps.setDouble(8, s.balance());
+            ps.setLong(9, updatedAt);
+            ps.executeUpdate();
+        }
+    }
+
+    //  Migration between backends
+
+    @Override
+    public void mergePlayers(List<PlayerRow> rows) throws SQLException {
+        String sql = "INSERT INTO " + t("players")
+                + " (player_uuid, username, first_seen, last_seen, playtime_seconds, login_streak, last_login_date, is_private, pinned_badges)"
+                + " VALUES (?,?,?,?,?,?,?,?,?)"
+                + " ON DUPLICATE KEY UPDATE"
+                + " first_seen=LEAST(first_seen, VALUES(first_seen)),"
+                + " last_seen=GREATEST(last_seen, VALUES(last_seen)),"
+                + " playtime_seconds=GREATEST(playtime_seconds, VALUES(playtime_seconds)),"
+                + " login_streak=GREATEST(login_streak, VALUES(login_streak)),"
+                + " last_login_date=CASE WHEN last_login_date IS NULL THEN VALUES(last_login_date)"
+                + "   WHEN VALUES(last_login_date) IS NULL THEN last_login_date"
+                + "   ELSE GREATEST(last_login_date, VALUES(last_login_date)) END,"
+                + " is_private=GREATEST(is_private, VALUES(is_private)),"
+                + " pinned_badges=IF(pinned_badges='', VALUES(pinned_badges), pinned_badges)";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            for (PlayerRow r : rows) {
+                ps.setString(1, r.uuid().toString());
+                ps.setString(2, r.username());
+                ps.setLong(3, r.firstSeen());
+                ps.setLong(4, r.lastSeen());
+                ps.setLong(5, r.playtimeSeconds());
+                ps.setInt(6, r.loginStreak());
+                ps.setString(7, r.lastLoginDate());
+                ps.setBoolean(8, r.isPrivate());
+                ps.setString(9, r.pinnedBadges() == null ? "" : r.pinnedBadges());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
+
+    @Override
+    public void mergeAchievementProgress(List<AchievementProgressRow> rows) throws SQLException {
+        String sql = "INSERT INTO " + t("achievement_progress")
+                + " (player_uuid, achievement_id, progress, completed_at) VALUES (?,?,?,?)"
+                + " ON DUPLICATE KEY UPDATE"
+                + " progress=GREATEST(progress, VALUES(progress)),"
+                + " completed_at=CASE WHEN completed_at>0 AND VALUES(completed_at)>0"
+                + "   THEN LEAST(completed_at, VALUES(completed_at))"
+                + "   ELSE GREATEST(completed_at, VALUES(completed_at)) END";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            for (AchievementProgressRow r : rows) {
+                ps.setString(1, r.uuid().toString());
+                ps.setString(2, r.achievementId());
+                ps.setLong(3, r.progress());
+                ps.setLong(4, r.completedAt());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
+
+    @Override
+    public void mergeBadges(List<BadgeRow> rows) throws SQLException {
+        String sql = "INSERT IGNORE INTO " + t("badges")
+                + " (player_uuid, badge_id, granted_at, granted_by) VALUES (?,?,?,?)";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            for (BadgeRow r : rows) {
+                ps.setString(1, r.uuid().toString());
+                ps.setString(2, r.badgeId());
+                ps.setLong(3, r.grantedAt());
+                ps.setString(4, r.grantedBy());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
     }
 }

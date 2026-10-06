@@ -45,6 +45,9 @@ public class AchievementManager {
      * For LOGIN_STREAK the amount is the current streak value (not a delta).
      */
     public void increment(Player player, TriggerType type, String target, long amount) {
+        // Nothing listens for this trigger and target - skip the loop entirely.
+        if (!configLoader.isWatched(type, target)) return;
+
         ProfileManager profileManager = plugin.getProfileManager();
         PlayerProfile profile = profileManager.get(player.getUniqueId());
         if (profile == null) return;
@@ -173,10 +176,13 @@ public class AchievementManager {
         Bukkit.broadcast(msg);
     }
 
-    private boolean targetMatches(String configTarget, String eventTarget) {
-        if (configTarget == null || configTarget.equals("*")) return true;
+    private boolean targetMatches(List<String> configTargets, String eventTarget) {
+        if (configTargets == null || configTargets.isEmpty() || configTargets.contains("*")) return true;
         if (eventTarget == null) return false;
-        return configTarget.equalsIgnoreCase(eventTarget);
+        for (String configTarget : configTargets) {
+            if (configTarget.equalsIgnoreCase(eventTarget)) return true;
+        }
+        return false;
     }
 
     private boolean prerequisitesMet(PlayerProfile profile, AchievementConfig ac) {

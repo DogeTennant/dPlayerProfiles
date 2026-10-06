@@ -24,14 +24,17 @@ public class MainConfig {
     public boolean streaksEnabled;
     public int leaderboardSize;
     public int playtimeUpdateInterval;
+    public boolean playtimeIgnoreVanished;
+    public boolean lastSeenIgnoreVanished;
+    public boolean loginIgnoreVanished;
 
     // anti-afk
     public boolean antiAfkEnabled;
     public int antiAfkTimeout; // seconds
 
-    // coreprotect
-    public boolean coreprotectEnabled;
-    public int coreprotectLookupTime; // hours, 0 = all time
+    // anti-farm
+    public boolean antiFarmEnabled;
+    public int antiFarmMaxPerChunk; // cap on tracked positions per chunk
 
     // notifications
     public String achievementNotification; // title, chat, both
@@ -44,4 +47,12 @@ public class MainConfig {
     public int pointsPerNode;            // points needed to advance one node
     public int pointsNodeCount;          // total number of nodes in the path
     public int pointsMilestoneInterval;  // every Nth node uses the milestone block (0 = disabled)
+
+    // web statistics export
+    public boolean webStatsEnabled;
+    public int webStatsInterval;              // seconds between snapshots of online players
+    public boolean webStatsBackfillOnStartup;
+    public boolean webStatsBackfillBalances;
+    public int webStatsBackfillBalancesPerTick;
+    public boolean webStatsExportCatalog;
 }

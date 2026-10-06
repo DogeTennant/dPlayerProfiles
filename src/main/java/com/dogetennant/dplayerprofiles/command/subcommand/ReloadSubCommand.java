@@ -28,6 +28,8 @@ public class ReloadSubCommand implements SubCommand {
         plugin.getAchievementConfigLoader().load();
         plugin.getBadgeConfigLoader().load();
         plugin.getGuiLayoutLoader().load();
+        plugin.getPlacedBlockTracker().applyConfig();
+        plugin.getWebStatsExporter().applyConfig();
         if (sender instanceof Player p) {
             plugin.getLangManager().send(p, MessageKey.RELOAD_SUCCESS);
         } else {
