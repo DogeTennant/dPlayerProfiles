@@ -140,7 +140,7 @@
     <dependency>
       <groupId>com.dogetennant.fluxshops</groupId>
       <artifactId>FluxShops</artifactId>
-      <version>1.3.0</version>
+      <version>1.3.1</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
