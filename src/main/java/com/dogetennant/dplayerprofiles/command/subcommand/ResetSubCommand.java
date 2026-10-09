@@ -41,18 +41,12 @@ public class ResetSubCommand implements SubCommand {
         String name = args[1];
         OfflinePlayer finalTarget = target;
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                plugin.getProfileManager().resetPlayer(finalTarget.getUniqueId());
-                if (sender instanceof Player p) {
-                    plugin.getServer().getScheduler().runTask(plugin, () ->
-                            plugin.getLangManager().send(p, MessageKey.CMD_RESET_SUCCESS,
-                                    Placeholder.of("player", name)));
-                } else {
-                    sender.sendMessage("Reset data for " + name);
-                }
-            } catch (SQLException e) {
-                LogUtil.severe("Failed to reset player " + name, e);
+        plugin.getProfileManager().resetPlayer(finalTarget.getUniqueId(), done -> {
+            if (!done) return; // logged
+            if (sender instanceof Player p) {
+                plugin.getLangManager().send(p, MessageKey.CMD_RESET_SUCCESS, Placeholder.of("player", name));
+            } else {
+                sender.sendMessage("Reset data for " + name);
             }
         });
     }

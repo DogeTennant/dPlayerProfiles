@@ -45,7 +45,9 @@ public class RewardManager {
                         if (reward.itemLore != null) builder.lore(reward.itemLore.toArray(new String[0]));
                         item = builder.build();
                     }
-                    player.getInventory().addItem(item);
+                    // what does not fit into a full inventory lands at the player's feet
+                    player.getInventory().addItem(item).values().forEach(leftover ->
+                            player.getWorld().dropItemNaturally(player.getLocation(), leftover));
                     String displayName = reward.itemStack != null && reward.itemStack.hasItemMeta()
                             && reward.itemStack.getItemMeta().hasDisplayName()
                             ? ColorUtil.stripFormatting(reward.itemStack.getItemMeta().getDisplayName())

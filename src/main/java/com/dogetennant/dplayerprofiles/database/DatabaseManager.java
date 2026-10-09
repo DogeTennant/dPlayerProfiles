@@ -274,6 +274,63 @@ public abstract class DatabaseManager {
         }
     }
 
+    //  Triggers waiting for an offline player
+
+    /** A trigger that happened while the player was offline, counted at their next login. */
+    public record PendingTrigger(long id, UUID uuid, String triggerType, String target, long amount, long createdAt) {}
+
+    public void addPendingTrigger(UUID uuid, String triggerType, String target, long amount, long createdAt)
+            throws SQLException {
+        String sql = "INSERT INTO " + t("pending_triggers")
+                + " (player_uuid, trigger_type, target, amount, created_at) VALUES (?,?,?,?,?)";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, triggerType);
+            ps.setString(3, target);
+            ps.setLong(4, amount);
+            ps.setLong(5, createdAt);
+            ps.executeUpdate();
+        }
+    }
+
+    /** The player's waiting triggers, oldest first. */
+    public List<PendingTrigger> getPendingTriggers(UUID uuid) throws SQLException {
+        List<PendingTrigger> rows = new ArrayList<>();
+        String sql = "SELECT id, trigger_type, target, amount, created_at FROM " + t("pending_triggers")
+                + " WHERE player_uuid=? ORDER BY id";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(new PendingTrigger(rs.getLong("id"), uuid, rs.getString("trigger_type"),
+                            rs.getString("target"), rs.getLong("amount"), rs.getLong("created_at")));
+                }
+            }
+        }
+        return rows;
+    }
+
+    /** Removes triggers once they are counted. */
+    public void deletePendingTriggers(List<Long> ids) throws SQLException {
+        if (ids.isEmpty()) return;
+        String sql = "DELETE FROM " + t("pending_triggers") + " WHERE id=?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            for (long id : ids) {
+                ps.setLong(1, id);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
+
+    protected void deleteAllPendingTriggers(UUID uuid) throws SQLException {
+        String sql = "DELETE FROM " + t("pending_triggers") + " WHERE player_uuid=?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.executeUpdate();
+        }
+    }
+
     //  Migration between backends (see command.subcommand.MigrateSubCommand)
 
     public record PlayerRow(UUID uuid, String username, long firstSeen, long lastSeen,
@@ -325,6 +382,44 @@ public abstract class DatabaseManager {
             }
         }
         return rows;
+    }
+
+    /** Every waiting trigger; none when the source is older than the table (1.1.0). */
+    public List<PendingTrigger> dumpPendingTriggers() throws SQLException {
+        boolean exists = listTables().stream().anyMatch(table -> table.equalsIgnoreCase(t("pending_triggers")));
+        if (!exists) return List.of();
+        List<PendingTrigger> rows = new ArrayList<>();
+        String sql = "SELECT id, player_uuid, trigger_type, target, amount, created_at FROM " + t("pending_triggers")
+                + " ORDER BY id";
+        try (Connection con = getConnection(); Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                rows.add(new PendingTrigger(rs.getLong("id"), UUID.fromString(rs.getString("player_uuid")),
+                        rs.getString("trigger_type"), rs.getString("target"), rs.getLong("amount"),
+                        rs.getLong("created_at")));
+            }
+        }
+        return rows;
+    }
+
+    /** Adds waiting triggers that are not there yet (same player, trigger, target, amount and time). */
+    public void mergePendingTriggers(List<PendingTrigger> rows) throws SQLException {
+        String exists = "SELECT 1 FROM " + t("pending_triggers") + " WHERE player_uuid=? AND trigger_type=?"
+                + " AND (target=? OR (target IS NULL AND ? IS NULL)) AND amount=? AND created_at=?";
+        for (PendingTrigger row : rows) {
+            try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(exists)) {
+                ps.setString(1, row.uuid().toString());
+                ps.setString(2, row.triggerType());
+                ps.setString(3, row.target());
+                ps.setString(4, row.target());
+                ps.setLong(5, row.amount());
+                ps.setLong(6, row.createdAt());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) continue;
+                }
+            }
+            addPendingTrigger(row.uuid(), row.triggerType(), row.target(), row.amount(), row.createdAt());
+        }
     }
 
     /**

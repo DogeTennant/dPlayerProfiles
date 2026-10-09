@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class PlayerProfile {
@@ -21,13 +23,14 @@ public class PlayerProfile {
     private boolean isPrivate = false;
 
     // achievement_id -> progress (long). completedAt == 0 means not completed.
-    private final Map<String, AchievementProgress> achievements = new HashMap<>();
+    // read from the chat thread and by placeholders while the main thread changes them
+    private final Map<String, AchievementProgress> achievements = new ConcurrentHashMap<>();
 
     // badge_id -> grantedAt epoch ms
-    private final Map<String, Long> badges = new HashMap<>();
+    private final Map<String, Long> badges = new ConcurrentHashMap<>();
 
     // ordered list of up to 3 badge IDs to show in chat hover (empty = show first 3 earned)
-    private List<String> pinnedBadges = new ArrayList<>();
+    private volatile List<String> pinnedBadges = new CopyOnWriteArrayList<>();
 
     public PlayerProfile(UUID uuid, String username, long firstSeen, long lastSeen,
                          long playtimeSeconds, int loginStreak, String lastLoginDate) {
@@ -56,7 +59,7 @@ public class PlayerProfile {
     public Map<String, AchievementProgress> getAchievements() { return achievements; }
     public Map<String, Long> getBadges() { return badges; }
     public List<String> getPinnedBadges() { return pinnedBadges; }
-    public void setPinnedBadges(List<String> pinnedBadges) { this.pinnedBadges = new ArrayList<>(pinnedBadges); }
+    public void setPinnedBadges(List<String> pinnedBadges) { this.pinnedBadges = new CopyOnWriteArrayList<>(pinnedBadges); }
 
     /** Badge IDs to show in the chat hover: pinned selection if set, otherwise first 3 by earn order. */
     public List<String> getEffectiveChatBadges() {

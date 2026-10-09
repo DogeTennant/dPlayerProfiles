@@ -141,6 +141,7 @@ public class MigrateSubCommand implements SubCommand {
                     target.mergeAchievementProgress(a);
                     var b = source.dumpBadges();
                     target.mergeBadges(b);
+                    target.mergePendingTriggers(source.dumpPendingTriggers());
                     players += p.size();
                     progress += a.size();
                     badges += b.size();

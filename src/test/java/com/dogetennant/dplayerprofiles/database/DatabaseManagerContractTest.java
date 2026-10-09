@@ -177,6 +177,61 @@ abstract class DatabaseManagerContractTest {
     //
 
     @Test
+    void aCompletedAchievementStaysCompletedWhenAnOlderWriteArrivesLate() throws Exception {
+        player(ALEX, "Alex", 10);
+        db.upsertAchievementProgress(ALEX, "miner", 100, 5555);
+        db.upsertAchievementProgress(ALEX, "miner", 99, 0);      // written before, landed after
+
+        PlayerProfile profile = db.loadPlayer(ALEX);
+
+        assertThat(profile.isCompleted("miner")).isTrue();
+        assertThat(profile.getAchievements().get("miner").completedAt()).isEqualTo(5555);
+    }
+
+    @Test
+    void offlineTriggersWaitInOrderUntilTheyAreCounted() throws Exception {
+        db.addPendingTrigger(ALEX, "TOURNAMENT_WIN", "weekly", 1, 100);
+        db.addPendingTrigger(ALEX, "TOURNAMENT_WIN", null, 2, 200);
+        db.addPendingTrigger(STEVE, "TOURNAMENT_WIN", "weekly", 1, 300);
+
+        var waiting = db.getPendingTriggers(ALEX);
+
+        assertThat(waiting).extracting(DatabaseManager.PendingTrigger::target, DatabaseManager.PendingTrigger::amount)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple("weekly", 1L),
+                        org.assertj.core.groups.Tuple.tuple(null, 2L));
+        db.deletePendingTriggers(List.of(waiting.get(0).id()));
+        assertThat(db.getPendingTriggers(ALEX)).extracting(DatabaseManager.PendingTrigger::amount).containsExactly(2L);
+        assertThat(db.getPendingTriggers(STEVE)).hasSize(1);
+    }
+
+    @Test
+    void deletingAPlayerRemovesTheirOfflineTriggers() throws Exception {
+        player(ALEX, "Alex", 10);
+        db.addPendingTrigger(ALEX, "TOURNAMENT_WIN", "weekly", 1, 100);
+
+        db.deletePlayer(ALEX);
+
+        assertThat(db.getPendingTriggers(ALEX)).isEmpty();
+    }
+
+    @Test
+    void offlineTriggersAreCopiedOnceByAMigration() throws Exception {
+        db.addPendingTrigger(ALEX, "TOURNAMENT_WIN", "weekly", 1, 100);
+        db.addPendingTrigger(ALEX, "TOURNAMENT_WIN", null, 1, 200);
+        var exported = db.dumpPendingTriggers();
+        DatabaseManager other = open("other_");
+        try {
+            other.mergePendingTriggers(exported);
+            other.mergePendingTriggers(exported);
+
+            assertThat(other.getPendingTriggers(ALEX)).extracting(DatabaseManager.PendingTrigger::createdAt)
+                    .containsExactly(100L, 200L);
+        } finally {
+            other.shutdown();
+        }
+    }
+
+    @Test
     void progressIsReplacedAndCanBeRemoved() throws Exception {
         player(ALEX, "Alex", 10);
         db.upsertAchievementProgress(ALEX, "miner", 50, 0);

@@ -10,15 +10,19 @@ import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -109,6 +113,34 @@ public class PlacedBlockTracker implements Listener {
         }
         if (tracked.positions.add(packLocal(block))) {
             tracked.dirty = true;
+        }
+    }
+
+    /** Blocks a piston pushes keep their mark where they land (place, push, break must not count). */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPistonExtend(BlockPistonExtendEvent event) {
+        moveMarks(event.getBlocks(), event.getDirection());
+    }
+
+    /** A sticky piston pulls towards itself: against the direction it faces ({@code getDirection()}). */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPistonRetract(BlockPistonRetractEvent event) {
+        moveMarks(event.getBlocks(), event.getDirection().getOppositeFace());
+    }
+
+    /** Forgets the old spots of the marked blocks that move, then marks where they land. */
+    private void moveMarks(List<Block> moved, BlockFace towards) {
+        if (!enabled || moved.isEmpty()) return;
+        List<Block> marked = moved.stream().filter(this::isPlayerPlaced).toList();
+        for (Block block : marked) {
+            TrackedChunk tracked = lookup(block.getChunk());
+            if (tracked.positions.remove(packLocal(block))) tracked.dirty = true;
+        }
+        for (Block block : marked) {
+            Block landing = block.getRelative(towards);
+            TrackedChunk tracked = lookup(landing.getChunk());
+            if (maxPerChunk > 0 && tracked.positions.size() >= maxPerChunk) continue;
+            if (tracked.positions.add(packLocal(landing))) tracked.dirty = true;
         }
     }
 

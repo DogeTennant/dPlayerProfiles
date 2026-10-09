@@ -20,7 +20,7 @@
 - **Multi-language** - swap languages at runtime; ships with `en_us` and `cs_cz`
 - **SQLite & MySQL** - choose your storage backend; HikariCP connection pooling for MySQL; `/dp migrate` moves existing data between them
 - **Web Statistics Export** - writes vanilla statistics (mobs killed, deaths, playtime, blocks mined, ...) and Vault balances of every player to the database, so a website can show leaderboards and player pages
-- **Anti-AFK & Anti-farm** - built-in tracking of player-placed blocks stops break/place farming with no database lookups; AFK detection for time-played achievements
+- **Anti-AFK & Anti-farm** - built-in tracking of player-placed blocks (also when pistons move them) stops break/place farming with no database lookups; AFK detection for time-played achievements
 - **PlaceholderAPI** - expose profile data to scoreboards, tab lists, and other plugins
 - **Developer API** - query profiles, drive achievement progress, and manage badges from your own plugin
 

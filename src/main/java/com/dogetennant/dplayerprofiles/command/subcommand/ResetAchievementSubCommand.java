@@ -51,19 +51,14 @@ public class ResetAchievementSubCommand implements SubCommand {
         if (target == null) target = Bukkit.getOfflinePlayer(playerName);
         OfflinePlayer finalTarget = target;
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                plugin.getProfileManager().resetAchievement(finalTarget.getUniqueId(), achievementId);
-                if (sender instanceof Player p) {
-                    plugin.getServer().getScheduler().runTask(plugin, () ->
-                            plugin.getLangManager().send(p, MessageKey.CMD_RESETACH_SUCCESS,
-                                    Placeholder.of("player", playerName),
-                                    Placeholder.of("achievement", achievementId)));
-                } else {
-                    sender.sendMessage("Reset achievement " + achievementId + " for " + playerName);
-                }
-            } catch (SQLException e) {
-                LogUtil.severe("Failed to reset achievement for " + playerName, e);
+        plugin.getProfileManager().resetAchievement(finalTarget.getUniqueId(), achievementId, done -> {
+            if (!done) return; // logged
+            if (sender instanceof Player p) {
+                plugin.getLangManager().send(p, MessageKey.CMD_RESETACH_SUCCESS,
+                        Placeholder.of("player", playerName),
+                        Placeholder.of("achievement", achievementId));
+            } else {
+                sender.sendMessage("Reset achievement " + achievementId + " for " + playerName);
             }
         });
     }

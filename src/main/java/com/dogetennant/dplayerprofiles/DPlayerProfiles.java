@@ -13,6 +13,7 @@ import com.dogetennant.dplayerprofiles.config.BadgeConfigLoader;
 import com.dogetennant.dplayerprofiles.config.ConfigManager;
 import com.dogetennant.dplayerprofiles.config.GuiLayoutLoader;
 import com.dogetennant.dplayerprofiles.database.DatabaseManager;
+import com.dogetennant.dplayerprofiles.database.DatabaseQueue;
 import com.dogetennant.dplayerprofiles.database.MySQLManager;
 import com.dogetennant.dplayerprofiles.database.SQLiteManager;
 import com.dogetennant.dplayerprofiles.gui.GuiManager;
@@ -28,6 +29,7 @@ import com.dogetennant.dplayerprofiles.util.LogUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
 public class DPlayerProfiles extends JavaPlugin {
 
@@ -36,6 +38,7 @@ public class DPlayerProfiles extends JavaPlugin {
     private ConfigManager configManager;
     private LanguageManager langManager;
     private DatabaseManager databaseManager;
+    private DatabaseQueue databaseQueue;
     private AchievementRewardStorage achievementRewardStorage;
     private AchievementConfigLoader achievementConfigLoader;
     private BadgeConfigLoader badgeConfigLoader;
@@ -73,6 +76,8 @@ public class DPlayerProfiles extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        databaseQueue = new DatabaseQueue(getLogger(), task -> getServer().getScheduler().runTask(this, task));
 
         // 4. Reward storage (before achievement config loader so it can overlay rewards)
         achievementRewardStorage = new AchievementRewardStorage(this);
@@ -190,6 +195,11 @@ public class DPlayerProfiles extends JavaPlugin {
         if (placedBlockTracker != null) placedBlockTracker.shutdown();
         if (webStatsExporter != null) webStatsExporter.shutdown();
         if (integrationManager != null) integrationManager.shutdown();
+        // plugins are disabled before the players are kicked: their quit save would never run
+        if (profileManager != null) profileManager.saveAll();
+        if (databaseQueue != null && !databaseQueue.close(30, TimeUnit.SECONDS)) {
+            LogUtil.warn("Database writes were still running after 30 seconds; some may be lost.");
+        }
         if (databaseManager != null) databaseManager.shutdown();
         LogUtil.info("dPlayerProfiles disabled.");
     }
@@ -205,6 +215,7 @@ public class DPlayerProfiles extends JavaPlugin {
     public ConfigManager getConfigManager() { return configManager; }
     public LanguageManager getLangManager() { return langManager; }
     public DatabaseManager getDatabaseManager() { return databaseManager; }
+    public DatabaseQueue getDatabaseQueue() { return databaseQueue; }
     public AchievementRewardStorage getAchievementRewardStorage() { return achievementRewardStorage; }
     public AchievementConfigLoader getAchievementConfigLoader() { return achievementConfigLoader; }
     public BadgeConfigLoader getBadgeConfigLoader() { return badgeConfigLoader; }

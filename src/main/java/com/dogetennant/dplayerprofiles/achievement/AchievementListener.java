@@ -13,6 +13,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.inventory.ItemStack;
 
 public class AchievementListener implements Listener {
 
@@ -74,7 +75,11 @@ public class AchievementListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCraft(CraftItemEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        String material = event.getRecipe().getResult().getType().name();
+        // the result slot holds what is crafted; complex recipes (dyed armour, fireworks, ...)
+        // report an empty result through getRecipe()
+        ItemStack result = event.getInventory().getResult();
+        if (result == null) result = event.getRecipe().getResult();
+        String material = result.getType().name();
         plugin.getAchievementManager().increment(player, TriggerType.CRAFT, material, 1);
     }
 }

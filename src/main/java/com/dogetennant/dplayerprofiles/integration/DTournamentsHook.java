@@ -19,12 +19,13 @@ public class DTournamentsHook implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onTournamentEnd(TournamentEndEvent e) {
+        if (!plugin.getAchievementConfigLoader().isWatched(TriggerType.TOURNAMENT_WIN, e.getConfigId())) return;
         Player winner = Bukkit.getPlayer(e.getWinner());
-        if (winner == null) return; // winner offline - skip; achievements require an online player
-        plugin.getAchievementManager().increment(
-                winner,
-                TriggerType.TOURNAMENT_WIN,
-                e.getConfigId(),
-                1);
+        if (winner == null || !plugin.getProfileManager().isLoaded(winner.getUniqueId())) {
+            // offline (or still loading): counted at their next login
+            plugin.getProfileManager().addPendingTrigger(e.getWinner(), TriggerType.TOURNAMENT_WIN, e.getConfigId(), 1);
+            return;
+        }
+        plugin.getAchievementManager().increment(winner, TriggerType.TOURNAMENT_WIN, e.getConfigId(), 1);
     }
 }

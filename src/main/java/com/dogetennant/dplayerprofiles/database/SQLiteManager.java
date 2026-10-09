@@ -74,6 +74,19 @@ public class SQLiteManager extends DatabaseManager {
                     PRIMARY KEY (player_uuid, badge_id)
                 )""".formatted(t("badges")));
 
+            // Triggers for a player who was offline (a tournament won after logging off), counted at login
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS %s (
+                    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                    player_uuid  TEXT    NOT NULL,
+                    trigger_type TEXT    NOT NULL,
+                    target       TEXT,
+                    amount       INTEGER NOT NULL,
+                    created_at   INTEGER NOT NULL
+                )""".formatted(t("pending_triggers")));
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS " + t("pending_triggers") + "_player ON "
+                    + t("pending_triggers") + " (player_uuid)");
+
             // Web statistics export - read by external tools (e.g. a website), never by the plugin's GUIs
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS %s (
@@ -304,6 +317,7 @@ public class SQLiteManager extends DatabaseManager {
     public void deletePlayer(UUID uuid) throws SQLException {
         deleteAllAchievementProgress(uuid);
         deleteAllBadges(uuid);
+        deleteAllPendingTriggers(uuid);
         String sql = "DELETE FROM " + t("players") + " WHERE player_uuid=?";
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());
@@ -318,8 +332,10 @@ public class SQLiteManager extends DatabaseManager {
             INSERT INTO %s (player_uuid, achievement_id, progress, completed_at)
             VALUES (?,?,?,?)
             ON CONFLICT(player_uuid, achievement_id) DO UPDATE SET
-                progress = excluded.progress,
-                completed_at = excluded.completed_at
+                progress = CASE WHEN completed_at > 0 AND excluded.completed_at = 0
+                                THEN progress ELSE excluded.progress END,
+                completed_at = CASE WHEN completed_at > 0 AND excluded.completed_at = 0
+                                    THEN completed_at ELSE excluded.completed_at END
             """.formatted(t("achievement_progress"));
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());

@@ -63,9 +63,12 @@ public class AchievementManager {
             if (!badgeRequirementsMet(profile, ac)) continue;
 
             long newProgress;
-            if (type == TriggerType.LOGIN_STREAK || type == TriggerType.MCMMO_LEVEL_UP
-                    || type == TriggerType.JOBS_LEVEL_UP || type == TriggerType.AURASKILLS_LEVEL_UP) {
-                newProgress = amount; // SET semantics: amount is the current value, not a delta
+            if (type == TriggerType.LOGIN_STREAK) {
+                newProgress = amount; // the current streak, which can also start again at 1
+            } else if (type == TriggerType.MCMMO_LEVEL_UP || type == TriggerType.JOBS_LEVEL_UP
+                    || type == TriggerType.AURASKILLS_LEVEL_UP) {
+                // the level just reached; with several skills (target *) the highest one counts
+                newProgress = Math.max(profile.getProgress(ac.id), amount);
             } else {
                 newProgress = profile.getProgress(ac.id) + amount;
             }

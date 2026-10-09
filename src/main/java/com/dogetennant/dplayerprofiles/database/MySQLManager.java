@@ -80,6 +80,18 @@ public class MySQLManager extends DatabaseManager {
                     PRIMARY KEY (player_uuid, badge_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""".formatted(t("badges")));
 
+            // Triggers for a player who was offline (a tournament won after logging off), counted at login
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS %s (
+                    id           BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    player_uuid  VARCHAR(36)  NOT NULL,
+                    trigger_type VARCHAR(32)  NOT NULL,
+                    target       VARCHAR(128),
+                    amount       BIGINT       NOT NULL,
+                    created_at   BIGINT       NOT NULL,
+                    INDEX %s_player (player_uuid)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""".formatted(t("pending_triggers"), t("pending_triggers")));
+
             // Web statistics export - read by external tools (e.g. a website), never by the plugin's GUIs
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS %s (
@@ -306,6 +318,7 @@ public class MySQLManager extends DatabaseManager {
     public void deletePlayer(UUID uuid) throws SQLException {
         deleteAllAchievementProgress(uuid);
         deleteAllBadges(uuid);
+        deleteAllPendingTriggers(uuid);
         String sql = "DELETE FROM " + t("players") + " WHERE player_uuid=?";
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());
@@ -316,14 +329,22 @@ public class MySQLManager extends DatabaseManager {
     @Override
     public void upsertAchievementProgress(UUID uuid, String achievementId,
                                            long progress, long completedAt) throws SQLException {
+        // A completion already stored is kept when an older, not completed write arrives late.
+        // The new values are passed again instead of VALUES(...), which H2 cannot use in a CASE.
         String sql = "INSERT INTO " + t("achievement_progress")
                 + " (player_uuid, achievement_id, progress, completed_at) VALUES (?,?,?,?)"
-                + " ON DUPLICATE KEY UPDATE progress=VALUES(progress), completed_at=VALUES(completed_at)";
+                + " ON DUPLICATE KEY UPDATE"
+                + " progress=CASE WHEN completed_at > 0 AND ? = 0 THEN progress ELSE ? END,"
+                + " completed_at=CASE WHEN completed_at > 0 AND ? = 0 THEN completed_at ELSE ? END";
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());
             ps.setString(2, achievementId);
             ps.setLong(3, progress);
             ps.setLong(4, completedAt);
+            ps.setLong(5, completedAt);
+            ps.setLong(6, progress);
+            ps.setLong(7, completedAt);
+            ps.setLong(8, completedAt);
             ps.executeUpdate();
         }
     }
