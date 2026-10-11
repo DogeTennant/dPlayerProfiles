@@ -122,10 +122,13 @@ public class PlacedBlockTracker implements Listener {
         moveMarks(event.getBlocks(), event.getDirection());
     }
 
-    /** A sticky piston pulls towards itself: against the direction it faces ({@code getDirection()}). */
+    /**
+     * A sticky piston pulls towards itself. The server gives the direction the blocks move in
+     * ({@code getDirection()}, towards the piston), as for a push.
+     */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPistonRetract(BlockPistonRetractEvent event) {
-        moveMarks(event.getBlocks(), event.getDirection().getOppositeFace());
+        moveMarks(event.getBlocks(), event.getDirection());
     }
 
     /** Forgets the old spots of the marked blocks that move, then marks where they land. */

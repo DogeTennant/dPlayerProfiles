@@ -114,11 +114,13 @@ class PlacedBlockTrackerTest {
 
     @Test
     void aPlacedBlockPulledAcrossAChunkBorderIsStillPlaced() {
-        // a sticky piston at x = 14 facing east pulls the block at 16 back to 15
+        // a sticky piston at x = 14 facing east pulls the block at 16 back to 15; Paper gives the
+        // direction the block moves in (west), not the one the piston faces
+        // (docs/problems/dplayerprofiles-piston-pull-moves-mark-wrong-way.md)
         tracker.markPlayerPlaced(at(16, 64, 1), "STONE");
         BlockPistonRetractEvent pull = mock(BlockPistonRetractEvent.class);
         when(pull.getBlocks()).thenReturn(List.of(at(16, 64, 1)));
-        when(pull.getDirection()).thenReturn(BlockFace.EAST);
+        when(pull.getDirection()).thenReturn(BlockFace.WEST);
 
         Fakes.fire(tracker, pull);
 
