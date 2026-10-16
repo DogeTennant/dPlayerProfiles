@@ -192,7 +192,14 @@ public class NodeRewardEditorGui extends BaseGui {
     }
 
     private void saveAndRefresh(Player player) {
-        plugin.getAchievementRewardStorage().setRewards("points_node_" + nodeIndex, rewards);
+        // refused while rewards.yml has a YAML error, which is never saved over
+        if (!plugin.getAchievementRewardStorage().setRewards("points_node_" + nodeIndex, rewards)) {
+            rewards.clear();
+            rewards.addAll(plugin.getAchievementRewardStorage().getRewards("points_node_" + nodeIndex));
+            plugin.getLangManager().send(player, MessageKey.FILE_BROKEN, Placeholder.of("file", "rewards.yml"));
+            buildContent();
+            return;
+        }
         plugin.getLangManager().send(player, MessageKey.POINTS_NODE_EDITOR_SAVED,
                 Placeholder.of("node", nodeIndex + 1));
         buildContent();

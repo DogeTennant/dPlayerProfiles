@@ -9,6 +9,9 @@ player-only: "{prefix} <red>Эта команда для игрока."
 unknown-command: "{prefix} <red>Непонятная сабкоманда. <white>/dp help</white> в помощь."
 player-not-found: "{prefix} <red>Игрок <white>{player}</white> на сервер не заходил."
 reload-success: "{prefix} <green>Конфиг и язык перезагружены."
+# {file} = файл с ошибкой YAML; он никогда не перезаписывается
+file-broken: "{prefix} <red>В файле <white>{file}</white> ошибка (YAML), поэтому он не изменён. Исправьте её и выполните <gray>/dp reload</gray>."
+reload-file-broken: "{prefix} <red>В файле <white>{file}</white> ошибка (YAML) - используется то, что было загружено из него раньше. Исправьте её и снова выполните <gray>/dp reload</gray>."
 
 # Language command
 cmd-language-usage: "{prefix} <red>Пример использования: /dp language <файлик>"

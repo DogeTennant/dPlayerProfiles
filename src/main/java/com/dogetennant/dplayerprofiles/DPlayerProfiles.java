@@ -58,10 +58,26 @@ public class DPlayerProfiles extends JavaPlugin {
     public void onEnable() {
         instance = this;
         LogUtil.init(this);
+        // A run stopped before (the same instance enabled again) left its parts behind; onDisable
+        // must only shut down what this run starts - it also runs when this run stays off.
+        playtimeTracker = null;
+        placedBlockTracker = null;
+        webStatsExporter = null;
+        integrationManager = null;
+        profileManager = null;
+        databaseQueue = null;
+        databaseManager = null;
 
         // 1. Config
         configManager = new ConfigManager(this);
-        configManager.load();
+        // A config.yml with a YAML error keeps the plugin off: on the built-in settings it would run
+        // on another database (storage.type falls back to sqlite) and with settings nobody chose.
+        if (!configManager.load()) {
+            LogUtil.severe("config.yml has a mistake (YAML error, see above), so dPlayerProfiles stays off"
+                    + " instead of running on the built-in settings. Fix it and restart the server.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // 2. Language
         langManager = new LanguageManager(this);
@@ -220,6 +236,7 @@ public class DPlayerProfiles extends JavaPlugin {
     public AchievementConfigLoader getAchievementConfigLoader() { return achievementConfigLoader; }
     public BadgeConfigLoader getBadgeConfigLoader() { return badgeConfigLoader; }
     public ProfileManager getProfileManager() { return profileManager; }
+    public PlaytimeTracker getPlaytimeTracker() { return playtimeTracker; }
     public AchievementManager getAchievementManager() { return achievementManager; }
     public PlacedBlockTracker getPlacedBlockTracker() { return placedBlockTracker; }
     public GuiManager getGuiManager() { return guiManager; }

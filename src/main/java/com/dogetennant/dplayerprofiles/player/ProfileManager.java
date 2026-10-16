@@ -307,13 +307,30 @@ public class ProfileManager implements Listener {
         write("remove badge for " + uuid, () -> db.deleteBadge(uuid, badgeId));
     }
 
-    /** Deletes everything stored about the player; {@code done} gets whether it worked (main thread). */
+    /**
+     * Deletes everything stored about the player; {@code done} gets whether it worked (main
+     * thread). An online player starts again at once, as on a first join - without a profile
+     * nothing they did until their next login would count or be saved.
+     */
     public void resetPlayer(UUID uuid, Consumer<Boolean> done) {
         cache.remove(uuid);
+        Player online = plugin.getServer().getPlayer(uuid);
+        String name = online != null ? online.getName() : null;
+        long now = System.currentTimeMillis();
+        String today = TimeUtil.today();
         queue().query(() -> read("reset player " + uuid, () -> {
             db.deletePlayer(uuid);
+            if (name != null) db.upsertPlayer(uuid, name, now, now, 0, 1, today);
             return true;
-        }) != null, done);
+        }) != null, ok -> {
+            Player player = name != null ? plugin.getServer().getPlayer(uuid) : null;
+            if (ok && player != null && !cache.containsKey(uuid)) {
+                PlayerProfile fresh = new PlayerProfile(uuid, name, now, now, 0, 1, today);
+                cache.put(uuid, fresh);
+                plugin.getAchievementManager().onLogin(player, fresh);
+            }
+            done.accept(ok);
+        });
     }
 
     /** Removes one achievement's progress; {@code done} gets whether it worked (main thread). */

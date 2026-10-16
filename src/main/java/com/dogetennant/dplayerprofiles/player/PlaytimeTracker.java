@@ -21,6 +21,8 @@ public class PlaytimeTracker implements Listener {
 
     private final DPlayerProfiles plugin;
     private BukkitTask task;
+    /** Seconds between runs of the task: what each run adds, whatever the config says by now. */
+    private int intervalSeconds;
 
     // Per-player AFK detection state
     private final Map<UUID, float[]> lastRotation = new ConcurrentHashMap<>();
@@ -32,8 +34,11 @@ public class PlaytimeTracker implements Listener {
         this.plugin = plugin;
     }
 
+    /** Starts (or, after a reload, restarts) the task at this interval. */
     public void start(int intervalSeconds) {
-        long intervalTicks = (long) intervalSeconds * 20;
+        shutdown();
+        this.intervalSeconds = Math.max(1, intervalSeconds);
+        long intervalTicks = (long) this.intervalSeconds * 20;
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, intervalTicks, intervalTicks);
     }
 
@@ -43,7 +48,7 @@ public class PlaytimeTracker implements Listener {
 
     private void tick() {
         ProfileManager profileManager = plugin.getProfileManager();
-        int elapsed = plugin.getConfigManager().get().playtimeUpdateInterval;
+        int elapsed = intervalSeconds;   // the time since the last run, not the configured value
         boolean antiAfkEnabled = plugin.getConfigManager().get().antiAfkEnabled;
         int afkTimeout = plugin.getConfigManager().get().antiAfkTimeout;
         boolean ignoreVanished = plugin.getConfigManager().get().playtimeIgnoreVanished;

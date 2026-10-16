@@ -2,9 +2,13 @@ package com.dogetennant.dplayerprofiles.config;
 
 import com.dogetennant.dplayerprofiles.util.LogUtil;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,8 +21,49 @@ public class ConfigManager {
         this.plugin = plugin;
     }
 
-    public void load() {
+    /**
+     * Writes a single value to config.yml as it is on disk now, so hand edits and comments made
+     * since the last load stay. A file with a YAML error is left alone: the value applies until
+     * the next start or reload.
+     *
+     * @return false when config.yml could not be read (nothing was written)
+     */
+    public boolean set(String path, Object value) {
+        plugin.getConfig().set(path, value);
+
+        File file = new File(plugin.getDataFolder(), "config.yml");
+        YamlConfiguration onDisk = new YamlConfiguration();
+        try {
+            if (file.exists()) onDisk.load(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            LogUtil.warn("config.yml could not be read, so '" + path + "' was not saved to it"
+                    + " (it applies until the next start): " + e.getMessage());
+            return false;
+        }
+        onDisk.set(path, value);
+        try {
+            onDisk.save(file);
+        } catch (IOException e) {
+            LogUtil.warn("Could not save '" + path + "' to config.yml: " + e.getMessage());
+        }
+        return true;
+    }
+
+    /**
+     * Reads config.yml. A file with a YAML error is not taken for "no settings": the built-in
+     * ones would point the plugin at another database (storage.type falls back to sqlite), so the
+     * settings from before stay and the caller decides (at start the plugin stays off).
+     *
+     * @return false when config.yml has an error (nothing changed)
+     */
+    public boolean load() {
         plugin.saveDefaultConfig();
+        try {
+            new YamlConfiguration().load(new File(plugin.getDataFolder(), "config.yml"));
+        } catch (IOException | InvalidConfigurationException e) {
+            LogUtil.severe("config.yml cannot be read, so its settings are not used: " + e.getMessage());
+            return false;
+        }
         plugin.reloadConfig();
         FileConfiguration cfg = plugin.getConfig();
 
@@ -80,6 +125,7 @@ public class ConfigManager {
         }
 
         LogUtil.info("Config loaded. Storage: " + mainConfig.storageType);
+        return true;
     }
 
     public MainConfig get() {

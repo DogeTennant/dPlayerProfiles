@@ -58,8 +58,8 @@ All integrations are **soft-dependencies** - the plugin works fine without any o
 | `/dp rewards <id>` | Edit achievement rewards in-game |
 | `/dp complete <player> <id>` | Force-complete an achievement |
 | `/dp badge give/remove <player> <id>` | Grant or revoke a badge |
-| `/dp reset <player>` | Wipe all data for a player |
-| `/dp reload` | Reload config and content files |
+| `/dp reset <player>` | Wipe all data for a player (an online player starts again at once) |
+| `/dp reload` | Reload config and content files (a file with a YAML error is reported and keeps what it held) |
 | `/dp migrate [prefix] [add]` | Copy all data from the inactive storage backend (SQLite ↔ MySQL) into the active one; `add` sums counters from a source that started empty |
 | `/dp webstats backfill` | Re-import offline players into the web statistics export and refresh all balances |
 
@@ -85,6 +85,8 @@ Running several servers against one database? Give each its own `storage.table-p
 
 1. Set `storage.type: mysql` and the connection details in `config.yml`, restart.
 2. With no players online, run `/dp migrate` once. It finds the old tables in `data.db` on its own (their prefix may differ from the new one - typically they have none) and merges them into MySQL without lowering anything that is already there, so re-running it is harmless. If several table sets exist (e.g. the prefix was changed while still on SQLite), all of them are merged; `/dp migrate <prefix>` (`none` = unprefixed) restricts it to one.
+
+   **A typo in `config.yml`** keeps the plugin off with a clear console error (since 1.1.2) rather than letting it run on the default settings - and on a fresh SQLite database.
 
    **Recovering from a regenerated config.** If the plugin ran on default settings for a while (e.g. `config.yml` was recreated and it silently wrote to a fresh `data.db` instead of MySQL), that SQLite data is not a copy of the history but the *delta* since the reset - and the plain merge would discard it, since it only keeps the higher value. Put the MySQL settings back, restart, and with no players online run `/dp migrate <prefix> add` **exactly once** (`none` for unprefixed tables; with several table sets in the source, `add` insists on being told which one started empty, since adding an old full copy on top would inflate every counter): playtime and cumulative achievement progress are added onto the MySQL values (login streak and skill-level achievements take the higher value as usual). Achievements that only reach their goal through the sum complete on the player's next bit of progress, so notifications and rewards still fire in-game. Delete or rename `data.db` afterwards - a second `add` run would add the same time again. The migration also refuses to run if `storage.table-prefix` does not point at this plugin's own tables in the target (see below).
 

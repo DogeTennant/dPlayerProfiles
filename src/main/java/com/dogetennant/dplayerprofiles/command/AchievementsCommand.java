@@ -53,6 +53,7 @@ public class AchievementsCommand implements CommandExecutor, TabCompleter {
                         Placeholder.of("player", targetName));
                 return;
             }
+            if (CommandUtil.refusedAsPrivate(viewer, profile)) return;
             GuiLayout layout = plugin.getGuiLayoutLoader().get("achievements");
             if (layout == null) return;
             plugin.getGuiManager().open(viewer, new DynamicGui(plugin, layout, profile, null));

@@ -1,6 +1,7 @@
 package com.dogetennant.dplayerprofiles.command.subcommand;
 
 import com.dogetennant.dplayerprofiles.DPlayerProfiles;
+import com.dogetennant.dplayerprofiles.command.CommandUtil;
 import com.dogetennant.dplayerprofiles.command.SubCommand;
 import com.dogetennant.dplayerprofiles.gui.DynamicGui;
 import com.dogetennant.dplayerprofiles.lang.MessageKey;
@@ -56,11 +57,7 @@ public class ProfileSubCommand implements SubCommand {
                         Placeholder.of("player", targetName));
                 return;
             }
-            if (profile.isPrivate() && !viewer.hasPermission("dplayerprofiles.profile.bypass-private")) {
-                plugin.getLangManager().send(viewer, MessageKey.PROFILE_PRIVATE,
-                        Placeholder.of("player", profile.getUsername()));
-                return;
-            }
+            if (CommandUtil.refusedAsPrivate(viewer, profile)) return;
             GuiLayout layout = plugin.getGuiLayoutLoader().get("profile");
             if (layout == null) return;
             plugin.getGuiManager().open(viewer, new DynamicGui(plugin, layout, profile, null));

@@ -70,8 +70,12 @@ public final class Fakes {
         return config;
     }
 
-    /** The mocked Bukkit server, installed once per test JVM (stub what a test needs). */
+    /**
+     * The mocked Bukkit server, made once per test JVM (stub what a test needs). Installed again
+     * when a MockBukkit test has replaced it in the meantime.
+     */
     public static synchronized Server server() {
+        if (server != null && Bukkit.getServer() != server) install(server);
         if (server == null) {
             server = mock(Server.class);
             when(server.getLogger()).thenReturn(Logger.getLogger("server-test"));
@@ -87,15 +91,19 @@ public final class Fakes {
             when(scheduler.scheduleSyncRepeatingTask(any(Plugin.class), any(Runnable.class), anyLong(), anyLong()))
                     .thenReturn(1);
             when(server.getScheduler()).thenReturn(scheduler);
-            try {
-                Field field = Bukkit.class.getDeclaredField("server");
-                field.setAccessible(true);
-                field.set(null, server);
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException("Cannot install the test server", e);
-            }
+            install(server);
         }
         return server;
+    }
+
+    private static void install(Server mock) {
+        try {
+            Field field = Bukkit.class.getDeclaredField("server");
+            field.setAccessible(true);
+            field.set(null, mock);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Cannot install the test server", e);
+        }
     }
 
     /** Runs the waiting background tasks, newest first when {@code reversed} (threads give no order). */

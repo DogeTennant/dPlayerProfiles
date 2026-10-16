@@ -1,6 +1,7 @@
 package com.dogetennant.dplayerprofiles.reward;
 
 import com.dogetennant.dplayerprofiles.util.LogUtil;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -19,15 +20,49 @@ public class AchievementRewardStorage {
 
     private final Plugin plugin;
     private final File file;
-    private YamlConfiguration config;
+    private YamlConfiguration config = new YamlConfiguration();
+    /** rewards.yml could not be read: it is not saved over until it reads again. */
+    private boolean fileBroken;
 
     public AchievementRewardStorage(Plugin plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "rewards.yml");
     }
 
-    public void load() {
-        config = file.exists() ? YamlConfiguration.loadConfiguration(file) : new YamlConfiguration();
+    /**
+     * Reads rewards.yml. A file with a YAML error keeps the rewards from before (none at start) and
+     * is never saved over until it reads again.
+     *
+     * @return false when the file has an error
+     */
+    public boolean load() {
+        if (!file.exists()) {
+            config = new YamlConfiguration();
+            fileBroken = false;
+            return true;
+        }
+        YamlConfiguration read = read();
+        fileBroken = read == null;
+        if (read == null) return false;
+        config = read;
+        return true;
+    }
+
+    /** Whether rewards.yml has a YAML error: the editors must not change rewards until it reads again. */
+    public boolean isFileBroken() {
+        return fileBroken;
+    }
+
+    private YamlConfiguration read() {
+        YamlConfiguration cfg = new YamlConfiguration();
+        try {
+            cfg.load(file);
+            return cfg;
+        } catch (IOException | InvalidConfigurationException e) {
+            LogUtil.severe("rewards.yml cannot be read, so it is left as it is and nothing is saved"
+                    + " over it until it reads again: " + e.getMessage());
+            return null;
+        }
     }
 
     public boolean hasOverride(String achievementId) {
@@ -65,7 +100,22 @@ public class AchievementRewardStorage {
         return config.getStringList(achievementId + ".lore");
     }
 
-    public void setRewards(String achievementId, List<RewardEntry> rewards) {
+    /**
+     * Saves one achievement's (or points node's) rewards into rewards.yml as it is on disk now, so
+     * hand edits of the others stay.
+     *
+     * @return false when rewards.yml has a YAML error (nothing was changed)
+     */
+    public boolean setRewards(String achievementId, List<RewardEntry> rewards) {
+        if (fileBroken) return false;
+        if (file.exists()) {
+            YamlConfiguration onDisk = read();
+            if (onDisk == null) {
+                fileBroken = true;
+                return false;
+            }
+            config = onDisk;
+        }
         config.set(achievementId, null); // clear existing
 
         List<String> commands = new ArrayList<>();
@@ -87,6 +137,7 @@ public class AchievementRewardStorage {
         if (!badges.isEmpty()) config.set(achievementId + ".badges", badges);
 
         save();
+        return true;
     }
 
     private void save() {

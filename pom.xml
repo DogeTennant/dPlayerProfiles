@@ -4,7 +4,7 @@
 
   <groupId>com.dogetennant</groupId>
   <artifactId>dPlayerProfiles</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.2</version>
   <packaging>jar</packaging>
 
   <name>dPlayerProfiles</name>
@@ -279,6 +279,14 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>2.5.252</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- MockBukkit: a simulated server (real players, inventories and events) for the tests that
+         load the whole plugin. Its version line must match the Paper API above. -->
+    <dependency>
+      <groupId>org.mockbukkit.mockbukkit</groupId>
+      <artifactId>mockbukkit-v1.21</artifactId>
+      <version>4.116.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

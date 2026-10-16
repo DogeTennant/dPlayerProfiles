@@ -57,11 +57,7 @@ public class ProfileCommand implements CommandExecutor, TabCompleter {
                         Placeholder.of("player", targetName));
                 return;
             }
-            if (profile.isPrivate() && !viewer.hasPermission("dplayerprofiles.profile.bypass-private")) {
-                plugin.getLangManager().send(viewer, MessageKey.PROFILE_PRIVATE,
-                        Placeholder.of("player", profile.getUsername()));
-                return;
-            }
+            if (CommandUtil.refusedAsPrivate(viewer, profile)) return;
             GuiLayout layout = plugin.getGuiLayoutLoader().get("profile");
             if (layout == null) return;
             plugin.getGuiManager().open(viewer, new DynamicGui(plugin, layout, profile, null));

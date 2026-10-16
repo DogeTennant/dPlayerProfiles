@@ -35,11 +35,15 @@ public class LanguageSubCommand implements SubCommand {
         String code = args[1].toLowerCase();
         boolean success = plugin.getLangManager().switchLanguage(code);
         if (success) {
+            // only the language line of config.yml, as it is on disk (hand edits and comments stay)
+            boolean saved = plugin.getConfigManager().set("language", code);
             if (sender instanceof Player p) {
                 plugin.getLangManager().send(p, MessageKey.CMD_LANGUAGE_SUCCESS,
                         Placeholder.of("code", code));
+                if (!saved) plugin.getLangManager().send(p, MessageKey.FILE_BROKEN, Placeholder.of("file", "config.yml"));
             } else {
                 sender.sendMessage("Language switched to " + code);
+                if (!saved) sender.sendMessage("config.yml has a mistake (YAML error), so it was not changed.");
             }
         } else {
             if (sender instanceof Player p) {

@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Map;
 import java.util.UUID;
@@ -51,6 +52,16 @@ public class GuiManager implements Listener {
         event.setCancelled(true);
         String text = PlainTextComponentSerializer.plainText().serialize(event.message());
         plugin.getServer().getScheduler().runTask(plugin, () -> callback.accept(text));
+    }
+
+    /**
+     * A prompt waiting for chat ends with the session: otherwise the player's first chat line after
+     * a rejoin - maybe days later - would be taken as the answer (a reward command).
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        pendingChatInputs.remove(event.getPlayer().getUniqueId());
+        openGuis.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGH)

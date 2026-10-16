@@ -8,6 +8,9 @@ player-only: "{prefix} <red>Tento příkaz může spustit pouze hráč."
 unknown-command: "{prefix} <red>Neznámý podpříkaz. Použij <white>/dp help</white> pro seznam."
 player-not-found: "{prefix} <red>Hráč <white>{player}</white> na tomto serveru nikdy nehrál."
 reload-success: "{prefix} <green>Konfigurace a jazykové soubory byly znovu načteny."
+# {file} = soubor s chybou YAML; nikdy se nepřepíše
+file-broken: "{prefix} <red><white>{file}</white> obsahuje chybu (chyba YAML), proto se nezměnil. Oprav ji a pak dej <gray>/dp reload</gray>."
+reload-file-broken: "{prefix} <red><white>{file}</white> obsahuje chybu (chyba YAML) - dál platí to, co se z něj načetlo dříve. Oprav ji a pak znovu dej <gray>/dp reload</gray>."
 
 # Language command
 cmd-language-usage: "{prefix} <red>Použití: /dp language <kód>"

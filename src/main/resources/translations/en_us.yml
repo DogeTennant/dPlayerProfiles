@@ -9,6 +9,9 @@ player-only: "{prefix} <red>This command can only be run by a player."
 unknown-command: "{prefix} <red>Unknown subcommand. Use <white>/dp help</white> for a list."
 player-not-found: "{prefix} <red>Player <white>{player}</white> has not played on this server."
 reload-success: "{prefix} <green>Configuration and language files reloaded."
+# {file} = a file with a YAML error; it is never saved over
+file-broken: "{prefix} <red><white>{file}</white> has a mistake (YAML error), so it was not changed. Fix it, then <gray>/dp reload</gray>."
+reload-file-broken: "{prefix} <red><white>{file}</white> has a mistake (YAML error) - what it held before stays in use. Fix it, then <gray>/dp reload</gray> again."
 
 # Language command
 cmd-language-usage: "{prefix} <red>Usage: /dp language <code>"

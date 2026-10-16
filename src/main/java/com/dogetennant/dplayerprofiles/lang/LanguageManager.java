@@ -84,8 +84,7 @@ public class LanguageManager {
             return false;
         }
         load(code);
-        plugin.getConfig().set("language", code);
-        plugin.saveConfig();
+        // saved by the caller: only the language line of config.yml, as it is on disk
         return true;
     }
 

@@ -199,10 +199,16 @@ public class AchievementRewardEditorGui extends BaseGui {
     }
 
     private void saveAndRefresh(Player player) {
+        // Persist to rewards.yml - refused while the file has a YAML error, which is never saved over
+        if (!plugin.getAchievementRewardStorage().setRewards(ac.id, rewards)) {
+            rewards.clear();
+            rewards.addAll(ac.rewards);          // back to what is in force
+            plugin.getLangManager().send(player, MessageKey.FILE_BROKEN, Placeholder.of("file", "rewards.yml"));
+            buildContent();
+            return;
+        }
         // Update the live achievement config so the change is visible immediately
         ac.rewards = new ArrayList<>(rewards);
-        // Persist to rewards.yml
-        plugin.getAchievementRewardStorage().setRewards(ac.id, rewards);
         plugin.getLangManager().send(player, MessageKey.REWARDS_EDITOR_SAVED,
                 Placeholder.of("achievement", ColorUtil.stripFormatting(ac.displayName)));
         buildContent();

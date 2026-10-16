@@ -7,6 +7,8 @@ public enum MessageKey {
     UNKNOWN_COMMAND("unknown-command"),
     PLAYER_NOT_FOUND("player-not-found"),
     RELOAD_SUCCESS("reload-success"),
+    FILE_BROKEN("file-broken"),
+    RELOAD_FILE_BROKEN("reload-file-broken"),
 
     CMD_LANGUAGE_USAGE("cmd-language-usage"),
     CMD_LANGUAGE_SUCCESS("cmd-language-success"),

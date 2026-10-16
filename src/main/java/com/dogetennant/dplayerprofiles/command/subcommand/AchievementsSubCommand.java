@@ -1,6 +1,7 @@
 package com.dogetennant.dplayerprofiles.command.subcommand;
 
 import com.dogetennant.dplayerprofiles.DPlayerProfiles;
+import com.dogetennant.dplayerprofiles.command.CommandUtil;
 import com.dogetennant.dplayerprofiles.command.SubCommand;
 import com.dogetennant.dplayerprofiles.gui.DynamicGui;
 import com.dogetennant.dplayerprofiles.lang.MessageKey;
@@ -59,6 +60,7 @@ public class AchievementsSubCommand implements SubCommand {
                         Placeholder.of("player", targetName));
                 return;
             }
+            if (CommandUtil.refusedAsPrivate(viewer, profile)) return;
             GuiLayout layout = plugin.getGuiLayoutLoader().get("achievements");
             if (layout == null) return;
             plugin.getGuiManager().open(viewer, new DynamicGui(plugin, layout, profile, null));
